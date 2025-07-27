@@ -8,6 +8,7 @@ enum TokenType
   Mul,
   OpenParen,
   CloseParen,
+  Not,
 }
 
 
@@ -20,7 +21,7 @@ class Lexer
 {
 
   string source;
-  List<Token> tokens = [];
+  public List<Token> tokens = [];
   int pos;
   int start;
 
@@ -30,7 +31,6 @@ class Lexer
   }
   void addToken(TokenType type)
   {
-    string a = source[start..pos];
     Token token = new Token()
     {
       type = type,
@@ -62,6 +62,9 @@ class Lexer
           continue;
         case '(':
           addToken(TokenType.OpenParen);
+          continue;
+        case '!':
+          addToken(TokenType.Not);
           continue;
         case ')':
           addToken(TokenType.CloseParen);

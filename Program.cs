@@ -12,6 +12,7 @@ public class Program
 
       Lexer l = new Lexer(source);
       l.Parse();
+      Parser p = new Parser(l.tokens);
 
     }
     catch (IOException e)
