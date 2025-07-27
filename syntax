@@ -1,0 +1,5 @@
+expression -> binop | unary | primary
+binop -> expression operator expression
+unary -> ("-" | "!") expression
+primary -> number | string | "(" expression ")"
+operator -> "+" | "-" | "*" | "/"
