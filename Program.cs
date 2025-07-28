@@ -11,8 +11,8 @@ public class Program
       string source = reader.ReadToEnd();
 
       Lexer l = new Lexer(source);
-      l.Parse();
-      Parser p = new Parser(l.tokens);
+      // l.Parse();
+      Parser p = new Parser(l);
 
     }
     catch (IOException e)

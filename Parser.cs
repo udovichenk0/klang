@@ -37,11 +37,10 @@ class Expr
 }
 class Parser
 {
-  List<Token> tokens;
-  int pos;
-  public Parser(List<Token> tokens)
+  Lexer l;
+  public Parser(Lexer lexer)
   {
-    this.tokens = tokens;
+    l = lexer;
     expression();
   }
 
@@ -53,6 +52,7 @@ class Parser
   }
   Expr temp()
   {
+    l.getToken();
     Expr expr = factor();
 
     while (Match([
@@ -60,9 +60,10 @@ class Parser
       TokenType.Plus,
     ]))
     {
-      Token operation = Prev();
+      Token op = l.token;
+      l.getToken();
       Expr rightExpr = factor();
-      expr = new Expr.Binary(expr, operation, rightExpr);
+      expr = new Expr.Binary(expr, op, rightExpr);
     }
     return expr;
   }
@@ -74,9 +75,10 @@ class Parser
       TokenType.Mul,
     ]))
     {
-      Token operation = Prev();
+      Token op = l.token;
+      l.getToken();
       Expr rightExpr = unary();
-      expr = new Expr.Binary(expr, operation, rightExpr);
+      expr = new Expr.Binary(expr, op, rightExpr);
     }
     return expr;
   }
@@ -84,7 +86,8 @@ class Parser
   {
     if (Match([TokenType.Not, TokenType.Minus]))
     {
-      Token op = Prev();
+      Token op = l.token;
+      l.getToken();
       Expr right = unary();
       return new Expr.Unary(op, right);
     }
@@ -92,60 +95,39 @@ class Parser
   }
   Expr primary()
   {
-    Token token = Next();
+    Token token = l.token;
+    l.getToken();
     switch (token.type)
     {
       case TokenType.Number:
         return new Expr.Primary(token);
     }
-    throw new UnknownPrimaryException();
+    throw new UnknownPrimaryException("lol");
   }
-  Token Next()
-  {
-    if (IsEnd())
-    {
-      throw new ZeroTokenLeftException();
-    }
-    pos++;
-    return tokens[pos - 1];
-  }
-  Token Peek()
-  {
-    if (IsEnd())
-    {
-      throw new ZeroTokenLeftException();
-    }
-    return tokens[pos];
-  }
+
   bool IsEnd()
   {
-    return pos >= tokens.Count;
+    return l.token.type == TokenType.EOL;
   }
   bool Match(TokenType[] types)
   {
     if (IsEnd()) return false;
-    Token token = Peek();
+    Token token = l.token;
     foreach (TokenType type in types)
     {
       if (type == token.type)
       {
-        Next();
         return true;
       }
     }
     return false;
   }
-  Token Prev()
-  {
-    if (pos <= 0)
-    {
-      return tokens[0];
-    }
-    return tokens[pos - 1];
-  }
 }
 
-class UnknownPrimaryException : Exception { }
+class UnknownPrimaryException : Exception
+{
+  public UnknownPrimaryException(string message) { }
+}
 class ZeroTokenLeftException : Exception { }
 
 class Printer

@@ -9,8 +9,8 @@ enum TokenType
   OpenParen,
   CloseParen,
   Not,
+  EOL
 }
-
 
 struct Token
 {
@@ -21,75 +21,74 @@ class Lexer
 {
 
   string source;
-  public List<Token> tokens = [];
   int pos;
   int start;
+  public Token token;
 
   public Lexer(string Source)
   {
     source = Source;
   }
-  void addToken(TokenType type)
+
+
+  void setToken(TokenType type)
   {
-    Token token = new Token()
-    {
-      type = type,
-      lit = source[start..pos],
-    };
-    tokens.Add(token);
+    token = new Token() { type = type, lit = source[start..pos] };
   }
-  public void Parse()
+  public void getToken()
   {
-    while (!IsEnd())
+    RemoveSpaces();
+    start = pos;
+
+    char c = Next();
+
+    switch (c)
     {
-      start = pos;
-      char c = Next();
-      switch (c)
+      case '+':
+        setToken(TokenType.Plus);
+        break;
+      case '-':
+        setToken(TokenType.Minus);
+        break;
+      case '*':
+        setToken(TokenType.Mul);
+        break;
+      case '/':
+        setToken(TokenType.Div);
+        break;
+      case '(':
+        setToken(TokenType.OpenParen);
+        break;
+      case '!':
+        setToken(TokenType.Not);
+        break;
+      case ')':
+        setToken(TokenType.CloseParen);
+        break;
+    }
+    if (char.IsNumber(c))
+    {
+      string lit = c.ToString();
+      while (char.IsNumber(Peek()))
       {
-        case ' ':
-          continue;
-        case '+':
-          addToken(TokenType.Plus);
-          continue;
-        case '-':
-          addToken(TokenType.Minus);
-          continue;
-        case '*':
-          addToken(TokenType.Mul);
-          continue;
-        case '/':
-          addToken(TokenType.Div);
-          continue;
-        case '(':
-          addToken(TokenType.OpenParen);
-          continue;
-        case '!':
-          addToken(TokenType.Not);
-          continue;
-        case ')':
-          addToken(TokenType.CloseParen);
-          continue;
+        lit += Next();
       }
-      if (char.IsNumber(c))
-      {
-        string lit = c.ToString();
-        while (char.IsNumber(Peek()))
-        {
-          lit += Next();
-        }
-        addToken(TokenType.Number);
-        continue;
-      }
+      setToken(TokenType.Number);
     }
   }
 
+  void RemoveSpaces()
+  {
+    while (Peek() == ' ')
+    {
+      Next();
+    }
+  }
   char Peek()
   {
     if (IsEnd()) return '\x00';
     return source[pos];
   }
-
-
   char Next()
   {
     if (IsEnd()) return '\x00';
