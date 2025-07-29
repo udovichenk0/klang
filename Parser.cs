@@ -1,67 +1,42 @@
-
-using System.Linq.Expressions;
-using System.Security.AccessControl;
-
-class Expr
-{
-  public class Binary : Expr
-  {
-    public Expr left;
-    public Expr right;
-    public Token op;
-    public Binary(Expr left, Token op, Expr right)
-    {
-      this.left = left;
-      this.op = op;
-      this.right = right;
-    }
-  }
-  public class Primary : Expr
-  {
-    public Token token;
-    public Primary(Token token)
-    {
-      this.token = token;
-    }
-  }
-  public class Unary : Expr
-  {
-    public Token op;
-    public Expr expr;
-    public Unary(Token op, Expr expr)
-    {
-      this.op = op;
-      this.expr = expr;
-    }
-  }
-}
 class Parser
 {
   Lexer l;
   public Parser(Lexer lexer)
   {
     l = lexer;
-    expression();
   }
 
-  void expression()
+  public Expr Parse()
   {
-    Expr expr = temp();
-    Printer printer = new Printer(expr);
-    printer.Print();
+    l.getToken();
+    try
+    {
+      Expr expr = expression();
+      Printer printer = new Printer(expr);
+      printer.Print();
+      return expr;
+    }
+    catch (ParseException e)
+    {
+      Console.WriteLine(e.ToString());
+      throw;
+    }
+  }
+
+  Expr expression()
+  {
+    return temp();
   }
   Expr temp()
   {
-    l.getToken();
     Expr expr = factor();
-
     while (Match([
       TokenType.Minus,
       TokenType.Plus,
     ]))
     {
       Token op = l.token;
-      l.getToken();
+      l.getToken(); // skip operator
       Expr rightExpr = factor();
       expr = new Expr.Binary(expr, op, rightExpr);
     }
@@ -76,7 +51,7 @@ class Parser
     ]))
     {
       Token op = l.token;
-      l.getToken();
+      l.getToken(); // skip operator
       Expr rightExpr = unary();
       expr = new Expr.Binary(expr, op, rightExpr);
     }
@@ -87,7 +62,7 @@ class Parser
     if (Match([TokenType.Not, TokenType.Minus]))
     {
       Token op = l.token;
-      l.getToken();
+      l.getToken(); // skip operator
       Expr right = unary();
       return new Expr.Unary(op, right);
     }
@@ -100,9 +75,19 @@ class Parser
     switch (token.type)
     {
       case TokenType.Number:
+      case TokenType.String:
+      case TokenType.True:
+      case TokenType.False:
         return new Expr.Primary(token);
+      // case TokenType.Ident:
+      //   return new Expr.Ident(token);
+      case TokenType.OpenParen:
+        Expr expr = expression();
+        Expect(TokenType.CloseParen);
+        return new Expr.Group(expr);
     }
-    throw new UnknownPrimaryException("lol");
+    Console.WriteLine(token.lit);
+    throw new ParseException($"unknown expression '{token.lit}'");
   }
 
   bool IsEnd()
@@ -122,13 +107,21 @@ class Parser
     }
     return false;
   }
+  void Expect(TokenType type)
+  {
+    if (type == l.token.type)
+    {
+      l.getToken();
+      return;
+    }
+    throw new ParseException($"expects token: '{type}', got: '{l.token.type}'");
+  }
 }
 
-class UnknownPrimaryException : Exception
+class ParseException : Exception
 {
-  public UnknownPrimaryException(string message) { }
+  public ParseException(string message) : base(message) { }
 }
-class ZeroTokenLeftException : Exception { }
 
 class Printer
 {
@@ -160,6 +153,16 @@ class Printer
       Expr.Unary unary = (Expr.Unary)expr;
       return $"({unary.op.lit}{WalkTree(unary.expr)})";
     }
+    else if (expr is Expr.Group)
+    {
+      Expr.Group group = (Expr.Group)expr;
+      return $"({WalkTree(group.expr)})";
+    }
+    // else if (expr is Expr.Ident)
+    // {
+    //   Expr.Ident ident = (Expr.Ident)expr;
+    //   return ident.token.lit;
+    // }
     else
     {
       return ((Expr.Primary)expr).token.lit;

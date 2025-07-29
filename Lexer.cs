@@ -2,6 +2,7 @@
 enum TokenType
 {
   Number,
+  String,
   Plus,
   Minus,
   Div,
@@ -9,7 +10,10 @@ enum TokenType
   OpenParen,
   CloseParen,
   Not,
-  EOL
+  EOL,
+  Ident,
+  True,
+  False,
 }
 
 struct Token
@@ -19,10 +23,15 @@ struct Token
 }
 class Lexer
 {
-
+  Dictionary<string, TokenType> keywords = new()
+  {
+    {"true", TokenType.True },
+    {"false", TokenType.False },
+  };
   string source;
   int pos;
   int start;
+  public bool error;
   public Token token;
 
   public Lexer(string Source)
@@ -37,34 +46,46 @@ class Lexer
   }
   public void getToken()
   {
+    if (IsEnd())
+    {
+      return;
+    }
     RemoveSpaces();
     start = pos;
 
     char c = Next();
-
     switch (c)
     {
       case '+':
         setToken(TokenType.Plus);
-        break;
+        return;
       case '-':
         setToken(TokenType.Minus);
-        break;
+        return;
       case '*':
         setToken(TokenType.Mul);
-        break;
+        return;
       case '/':
         setToken(TokenType.Div);
-        break;
+        return;
       case '(':
         setToken(TokenType.OpenParen);
-        break;
-      case '!':
-        setToken(TokenType.Not);
-        break;
+        return;
       case ')':
         setToken(TokenType.CloseParen);
-        break;
+        return;
+      case '!':
+        setToken(TokenType.Not);
+        return;
+      case '"':
+        start += 1;
+        while (!IsEnd() && Peek() != '"')
+        {
+          Next();
+        }
+        setToken(TokenType.String);
+        Expect('"');
+        return;
     }
     if (char.IsNumber(c))
     {
@@ -74,7 +95,25 @@ class Lexer
         lit += Next();
       }
       setToken(TokenType.Number);
+      return;
     }
+    if (IsAlpha(c))
+    {
+      while (IsAlpha(Peek()))
+      {
+        Next();
+      }
+      bool isKeyword = keywords.TryGetValue(source[start..pos], out TokenType type);
+      if (isKeyword)
+      {
+        setToken(type);
+        return;
+      }
+      setToken(TokenType.Ident);
+      return;
+    }
+    Console.WriteLine($"unexpected token: '{c}'");
+    error = true;
   }
 
   void RemoveSpaces()
@@ -89,15 +128,29 @@ class Lexer
     if (IsEnd()) return '\x00';
     return source[pos];
   }
+  bool IsAlpha(char c)
+  {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+  }
+  void Expect(char c)
+  {
+    if (Peek() == c)
+    {
+      Next();
+      return;
+    }
+    throw new ExpectException();
+  }
   char Next()
   {
-    if (IsEnd()) return '\x00';
+    if (IsEnd()) return '\x01';
     pos++;
     return source[pos - 1];
   }
-
   bool IsEnd()
   {
     return pos == source.Length;
   }
 }
+
+class ExpectException : Exception { }

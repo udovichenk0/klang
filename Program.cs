@@ -7,13 +7,19 @@ public class Program
     string path = "./test";
     try
     {
+
       using StreamReader reader = new(path);
       string source = reader.ReadToEnd();
-
       Lexer l = new Lexer(source);
-      // l.Parse();
+      if (l.error)
+      {
+        Console.WriteLine("Error happened");
+        return;
+      }
       Parser p = new Parser(l);
-
+      Expr expr = p.Parse();
+      object result = expr.Interpret();
+      Console.WriteLine(result);
     }
     catch (IOException e)
     {
