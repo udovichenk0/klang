@@ -17,7 +17,8 @@ public enum TokenType
   Semicolon,
   Print,
   Var,
-  Equal
+  Equal,
+  Nil
 }
 
 public struct Token
@@ -33,6 +34,7 @@ class Lexer
     {"false", TokenType.False },
     {"print", TokenType.Print },
     {"var", TokenType.Var },
+    {"nil", TokenType.Nil },
   };
   string source;
   int pos;

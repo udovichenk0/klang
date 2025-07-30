@@ -41,8 +41,11 @@ class Parser
     l.getToken();
     string name = l.token.lit;
     Expect(TokenType.Ident);
-    Expect(TokenType.Equal);
-    Expr expr = expression();
+    Expr? expr = null;
+    if (Match([TokenType.Equal]))
+    {
+      expr = expression();
+    }
     Expect(TokenType.Semicolon);
     return new Statement.VarDecl(name, expr);
   }
@@ -108,6 +111,7 @@ class Parser
       case TokenType.String:
       case TokenType.True:
       case TokenType.False:
+      case TokenType.Nil:
         return new Expr.Primary(token);
       case TokenType.Ident:
         return new Expr.Ident(token);

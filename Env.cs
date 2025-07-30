@@ -1,17 +1,19 @@
-using System.Runtime.InteropServices;
-
 public class Environment
 {
-  Dictionary<string, object> vars = new();
+  Dictionary<string, object?> vars = new();
 
   public object Get(string key)
   {
-    bool isExist = vars.TryGetValue(key, out object value);
-    if (isExist) return value;
+    bool isExist = vars.TryGetValue(key, out object? value);
+    if (isExist)
+    {
+      if (value is null) return "nil";
+      return value;
+    }
     throw new RuntimeException($"undefined variable {key}");
   }
 
-  public void Set(string key, object value)
+  public void Set(string key, object? value)
   {
     bool isExist = vars.ContainsKey(key);
     if (isExist) throw new RuntimeException($"variable {key} already exists");

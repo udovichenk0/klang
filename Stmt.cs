@@ -22,12 +22,17 @@ public abstract class Statement
       Console.WriteLine(result);
     }
   }
-  public class VarDecl(string ident, Expr expr) : Statement
+  public class VarDecl(string ident, Expr? expr) : Statement
   {
     public override void Execute(Interpreter i)
     {
-      object result = expr.Evaluate(i);
-      i.environment.Set(ident, result);
+      if (expr is not null)
+      {
+        object result = expr.Evaluate(i);
+        i.environment.Set(ident, result);
+        return;
+      }
+      i.environment.Set(ident, null);
     }
   }
 }

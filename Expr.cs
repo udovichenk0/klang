@@ -59,6 +59,7 @@ public abstract class Expr
     {
       if (token.type == TokenType.True) return true;
       if (token.type == TokenType.False) return false;
+      if (token.type == TokenType.Nil) return null;
       if (token.type == TokenType.Number) return Convert.ToDouble(token.lit);
 
       return token.lit;
