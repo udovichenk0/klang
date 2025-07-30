@@ -1,6 +1,8 @@
-abstract class Expr
+using klang;
+
+public abstract class Expr
 {
-  abstract public object Interpret();
+  abstract public object Evaluate(Interpreter i);
   public class Binary : Expr
   {
     public Expr left;
@@ -13,10 +15,10 @@ abstract class Expr
       this.right = right;
     }
 
-    public override object Interpret()
+    public override object Evaluate(Interpreter i)
     {
-      object leftValue = left.Interpret();
-      object rightValue = right.Interpret();
+      object leftValue = left.Evaluate(i);
+      object rightValue = right.Evaluate(i);
       bool isString = leftValue is string || rightValue is string;
       if (op.type == TokenType.Plus)
       {
@@ -53,7 +55,7 @@ abstract class Expr
     {
       this.token = token;
     }
-    public override object Interpret()
+    public override object Evaluate(Interpreter i)
     {
       if (token.type == TokenType.True) return true;
       if (token.type == TokenType.False) return false;
@@ -71,9 +73,9 @@ abstract class Expr
       this.op = op;
       this.expr = expr;
     }
-    public override object Interpret()
+    public override object Evaluate(Interpreter i)
     {
-      object val = expr.Interpret();
+      object val = expr.Evaluate(i);
       switch (op.type)
       {
         case TokenType.Not:
@@ -113,19 +115,23 @@ abstract class Expr
     {
       this.expr = expr;
     }
-    public override object Interpret()
+    public override object Evaluate(Interpreter i)
     {
-      return expr.Interpret();
+      return expr.Evaluate(i);
     }
   }
-  // public class Ident : Expr
-  // {
-  //   public Token token;
-  //   public Ident(Token token)
-  //   {
-  //     this.token = token;
-  //   }
-  // }
+  public class Ident : Expr
+  {
+    public Token token;
+    public Ident(Token token)
+    {
+      this.token = token;
+    }
+    public override object Evaluate(Interpreter i)
+    {
+      return i.environment.Get(token.lit);
+    }
+  }
 }
 
 class RuntimeException : Exception

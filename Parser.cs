@@ -1,20 +1,22 @@
 class Parser
 {
   Lexer l;
+  public List<Statement> statements = new();
   public Parser(Lexer lexer)
   {
     l = lexer;
   }
 
-  public Expr Parse()
+  public List<Statement> Parse()
   {
     l.getToken();
     try
     {
-      Expr expr = expression();
-      Printer printer = new Printer(expr);
-      printer.Print();
-      return expr;
+      while (!l.eof)
+      {
+        statements.Add(statement());
+      }
+      return statements;
     }
     catch (ParseException e)
     {
@@ -22,7 +24,35 @@ class Parser
       throw;
     }
   }
-
+  Statement statement()
+  {
+    if (Match([TokenType.Print])) return printStatement();
+    if (Match([TokenType.Var])) return varDeclStatement();
+    return expressionStatement();
+  }
+  Statement expressionStatement()
+  {
+    Expr expr = expression();
+    Expect(TokenType.Semicolon);
+    return new Statement.Expression(expr);
+  }
+  Statement varDeclStatement()
+  {
+    l.getToken();
+    string name = l.token.lit;
+    Expect(TokenType.Ident);
+    Expect(TokenType.Equal);
+    Expr expr = expression();
+    Expect(TokenType.Semicolon);
+    return new Statement.VarDecl(name, expr);
+  }
+  Statement printStatement()
+  {
+    l.getToken();
+    Expr expr = expression();
+    Expect(TokenType.Semicolon);
+    return new Statement.Print(expr);
+  }
   Expr expression()
   {
     return temp();
@@ -79,14 +109,13 @@ class Parser
       case TokenType.True:
       case TokenType.False:
         return new Expr.Primary(token);
-      // case TokenType.Ident:
-      //   return new Expr.Ident(token);
+      case TokenType.Ident:
+        return new Expr.Ident(token);
       case TokenType.OpenParen:
         Expr expr = expression();
         Expect(TokenType.CloseParen);
         return new Expr.Group(expr);
     }
-    Console.WriteLine(token.lit);
     throw new ParseException($"unknown expression '{token.lit}'");
   }
 
@@ -158,11 +187,11 @@ class Printer
       Expr.Group group = (Expr.Group)expr;
       return $"({WalkTree(group.expr)})";
     }
-    // else if (expr is Expr.Ident)
-    // {
-    //   Expr.Ident ident = (Expr.Ident)expr;
-    //   return ident.token.lit;
-    // }
+    else if (expr is Expr.Ident)
+    {
+      Expr.Ident ident = (Expr.Ident)expr;
+      return ident.token.lit;
+    }
     else
     {
       return ((Expr.Primary)expr).token.lit;

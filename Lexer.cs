@@ -1,5 +1,5 @@
 
-enum TokenType
+public enum TokenType
 {
   Number,
   String,
@@ -14,9 +14,13 @@ enum TokenType
   Ident,
   True,
   False,
+  Semicolon,
+  Print,
+  Var,
+  Equal
 }
 
-struct Token
+public struct Token
 {
   public required TokenType type;
   public required string lit;
@@ -27,12 +31,15 @@ class Lexer
   {
     {"true", TokenType.True },
     {"false", TokenType.False },
+    {"print", TokenType.Print },
+    {"var", TokenType.Var },
   };
   string source;
   int pos;
   int start;
   public bool error;
   public Token token;
+  public bool eof;
 
   public Lexer(string Source)
   {
@@ -74,8 +81,14 @@ class Lexer
       case ')':
         setToken(TokenType.CloseParen);
         return;
+      case ';':
+        setToken(TokenType.Semicolon);
+        return;
       case '!':
         setToken(TokenType.Not);
+        return;
+      case '=':
+        setToken(TokenType.Equal);
         return;
       case '"':
         start += 1;
@@ -112,20 +125,21 @@ class Lexer
       setToken(TokenType.Ident);
       return;
     }
-    Console.WriteLine($"unexpected token: '{c}'");
+    Console.WriteLine($"unexpected token {(byte)c}");
     error = true;
   }
 
   void RemoveSpaces()
   {
-    while (Peek() == ' ')
+    while (Peek() == ' ' || Peek() == '\r' || Peek() == '\n' || Peek() == '\x01')
     {
       Next();
     }
   }
   char Peek()
   {
-    if (IsEnd()) return '\x00';
+    if (IsEnd())
+      return '\x00';
     return source[pos];
   }
   bool IsAlpha(char c)
@@ -149,7 +163,12 @@ class Lexer
   }
   bool IsEnd()
   {
-    return pos == source.Length;
+    if (pos == source.Length)
+    {
+      eof = true;
+      return true;
+    }
+    return false;
   }
 }
 
