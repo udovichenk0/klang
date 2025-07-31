@@ -1,5 +1,4 @@
 using klang;
-using Microsoft.VisualBasic;
 
 public abstract class Expr
 {
@@ -45,6 +44,16 @@ public abstract class Expr
           return (double)leftValue * (double)rightValue;
         case TokenType.Div:
           return (double)leftValue / (double)rightValue;
+        case TokenType.Less:
+          return (double)leftValue < (double)rightValue;
+        case TokenType.More:
+          return (double)leftValue > (double)rightValue;
+        case TokenType.LessEqual:
+          return (double)leftValue <= (double)rightValue;
+        case TokenType.MoreEqual:
+          return (double)leftValue >= (double)rightValue;
+        case TokenType.EqualEqual:
+          return (double)leftValue == (double)rightValue;
       }
       throw new RuntimeException($"unknown operation: {op.lit}");
     }

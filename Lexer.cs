@@ -18,7 +18,12 @@ public enum TokenType
   Print,
   Var,
   Equal,
-  Nil
+  Nil,
+  More,
+  Less,
+  MoreEqual,
+  LessEqual,
+  EqualEqual,
 }
 
 public struct Token
@@ -90,7 +95,28 @@ class Lexer
         setToken(TokenType.Not);
         return;
       case '=':
-        setToken(TokenType.Equal);
+        if (Peek() == '=')
+        {
+          setToken(TokenType.EqualEqual);
+          Next();
+        }
+        else setToken(TokenType.Equal);
+        return;
+      case '>':
+        if (Peek() == '=')
+        {
+          setToken(TokenType.MoreEqual);
+          Next();
+        }
+        else setToken(TokenType.More);
+        return;
+      case '<':
+        if (Peek() == '=')
+        {
+          setToken(TokenType.LessEqual);
+          Next();
+        }
+        else setToken(TokenType.Less);
         return;
       case '"':
         start += 1;

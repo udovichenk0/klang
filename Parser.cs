@@ -63,18 +63,36 @@ class Parser
   }
   Expr assignment()
   {
-    Expr ident = temp();
+    Expr ident = equality();
     if (Match([TokenType.Equal]))
     {
       l.getToken(); // skip operator
       if (ident is Expr.Ident)
       {
-        Expr expr = temp();
+        Expr expr = equality();
         return new Expr.Assign((Expr.Ident)ident, expr);
       }
       throw new ParseException("invalid assignment target");
     }
     return ident;
+  }
+  Expr equality()
+  {
+    Expr leftExpr = temp();
+    if (Match([
+      TokenType.Less,
+      TokenType.More,
+      TokenType.LessEqual,
+      TokenType.MoreEqual,
+      TokenType.EqualEqual,
+    ]))
+    {
+      Token op = l.token;
+      l.getToken(); // skip operator
+      Expr rightExpr = temp();
+      return new Expr.Binary(leftExpr, op, rightExpr);
+    }
+    return leftExpr;
   }
   Expr temp()
   {
