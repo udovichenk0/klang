@@ -44,6 +44,7 @@ class Parser
     Expr? expr = null;
     if (Match([TokenType.Equal]))
     {
+      l.getToken(); // skip equal token
       expr = expression();
     }
     Expect(TokenType.Semicolon);
@@ -58,7 +59,22 @@ class Parser
   }
   Expr expression()
   {
-    return temp();
+    return assignment();
+  }
+  Expr assignment()
+  {
+    Expr ident = temp();
+    if (Match([TokenType.Equal]))
+    {
+      l.getToken(); // skip operator
+      if (ident is Expr.Ident)
+      {
+        Expr expr = temp();
+        return new Expr.Assign((Expr.Ident)ident, expr);
+      }
+      throw new ParseException("invalid assignment target");
+    }
+    return ident;
   }
   Expr temp()
   {

@@ -1,4 +1,5 @@
 using klang;
+using Microsoft.VisualBasic;
 
 public abstract class Expr
 {
@@ -131,6 +132,16 @@ public abstract class Expr
     public override object Evaluate(Interpreter i)
     {
       return i.environment.Get(token.lit);
+    }
+  }
+  public class Assign(Ident ident, Expr expr) : Expr
+  {
+    public Ident ident = ident;
+    public override object Evaluate(Interpreter i)
+    {
+      object value = expr.Evaluate(i);
+      i.environment.Assign(ident.token.lit, value);
+      return value;
     }
   }
 }

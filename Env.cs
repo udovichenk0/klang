@@ -20,4 +20,14 @@ public class Environment
 
     vars.Add(key, value);
   }
+  public void Assign(string key, object value)
+  {
+    if (vars.ContainsKey(key))
+    {
+      vars[key] = value;
+      return;
+    }
+
+    throw new RuntimeException($"undefined variable {key}");
+  }
 }
