@@ -26,6 +26,7 @@ class Parser
   }
   Statement statement()
   {
+    if (Match([TokenType.CurlyOpen])) return blockStatement();
     if (Match([TokenType.Print])) return printStatement();
     if (Match([TokenType.Var])) return varDeclStatement();
     return expressionStatement();
@@ -35,6 +36,17 @@ class Parser
     Expr expr = expression();
     Expect(TokenType.Semicolon);
     return new Statement.Expression(expr);
+  }
+  Statement blockStatement()
+  {
+    l.getToken();
+    List<Statement> statements = [];
+    while (IsEnd() || !Match([TokenType.CurlyClose]))
+    {
+      statements.Add(statement());
+    }
+    Expect(TokenType.CurlyClose);
+    return new Statement.Block(statements);
   }
   Statement varDeclStatement()
   {

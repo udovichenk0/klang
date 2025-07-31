@@ -1,6 +1,7 @@
-public class Environment
+public class Environment(Environment? environment)
 {
   Dictionary<string, object?> vars = new();
+  Environment? enclosing = environment;
 
   public object Get(string key)
   {
@@ -9,6 +10,10 @@ public class Environment
     {
       if (value is null) return "nil";
       return value;
+    }
+    if (enclosing is not null)
+    {
+      return enclosing.Get(key);
     }
     throw new RuntimeException($"undefined variable {key}");
   }
@@ -26,6 +31,10 @@ public class Environment
     {
       vars[key] = value;
       return;
+    }
+    if (enclosing is not null)
+    {
+      enclosing.Assign(key, value);
     }
 
     throw new RuntimeException($"undefined variable {key}");

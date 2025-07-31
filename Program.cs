@@ -33,7 +33,7 @@ public class Program
 
 public class Interpreter(List<Statement> stmts)
 {
-  public Environment environment = new();
+  public Environment environment = new(null);
 
   public void Interpret()
   {

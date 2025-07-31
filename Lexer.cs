@@ -24,6 +24,8 @@ public enum TokenType
   MoreEqual,
   LessEqual,
   EqualEqual,
+  CurlyOpen,
+  CurlyClose,
 }
 
 public struct Token
@@ -87,6 +89,12 @@ class Lexer
         return;
       case ')':
         setToken(TokenType.CloseParen);
+        return;
+      case '{':
+        setToken(TokenType.CurlyOpen);
+        return;
+      case '}':
+        setToken(TokenType.CurlyClose);
         return;
       case ';':
         setToken(TokenType.Semicolon);

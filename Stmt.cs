@@ -1,6 +1,4 @@
 
-using System.Data.Common;
-using System.IO.Pipelines;
 using klang;
 
 public abstract class Statement
@@ -20,6 +18,19 @@ public abstract class Statement
     {
       object result = expr.Evaluate(i);
       Console.WriteLine(result);
+    }
+  }
+  public class Block(List<Statement> statements) : Statement
+  {
+    List<Statement> statements = statements;
+    public override void Execute(Interpreter i)
+    {
+      Environment innerEnvironment = new(i.environment);
+      i.environment = innerEnvironment;
+      foreach (Statement statement in statements)
+      {
+        statement.Execute(i);
+      }
     }
   }
   public class VarDecl(string ident, Expr? expr) : Statement
