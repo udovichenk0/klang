@@ -47,15 +47,28 @@ public abstract class Statement
       i.environment.Set(ident, null);
     }
   }
-  public class While(Expr cond, Statement statement) : Statement
+  public class Loop(Statement? init, Expr? cond, Expr? action, Statement body) : Statement
   {
     public override void Execute(Interpreter i)
     {
-      object eval = cond.Evaluate(i);
-      while (cond.IsTruthy(eval))
+      init?.Execute(i);
+      if (cond is not null)
       {
-        statement.Execute(i);
-        eval = cond.Evaluate(i);
+        object condEval = cond.Evaluate(i);
+        while (cond.IsTruthy(condEval))
+        {
+          body.Execute(i);
+          action?.Evaluate(i);
+          condEval = cond.Evaluate(i);
+        }
+      }
+      else
+      {
+        while (true)
+        {
+          body.Execute(i);
+          action?.Evaluate(i);
+        }
       }
     }
   }

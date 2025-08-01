@@ -1,3 +1,5 @@
+using System.Reflection;
+
 class Parser
 {
   Lexer l;
@@ -29,6 +31,7 @@ class Parser
     if (Match([TokenType.CurlyOpen])) return blockStatement();
     if (Match([TokenType.If])) return conditionStatement();
     if (Match([TokenType.While])) return whileStatement();
+    if (Match([TokenType.For])) return forStatement();
     if (Match([TokenType.Print])) return printStatement();
     if (Match([TokenType.Var])) return varDeclStatement();
     return expressionStatement();
@@ -55,8 +58,33 @@ class Parser
     Expect(TokenType.ParenOpen);
     Expr cond = expression();
     Expect(TokenType.ParenClose);
-    Statement stm = statement();
-    return new Statement.While(cond, stm);
+    Statement body = statement();
+    return new Statement.Loop(null, cond, null, body);
+  }
+  Statement forStatement()
+  {
+    l.getToken();
+    Expect(TokenType.ParenOpen);
+    Statement? init = null;
+    Expr? cond = null;
+    Expr? action = null;
+    if (Match([TokenType.Semicolon])) l.getToken();
+    else init = varDeclStatement();
+    if (Match([TokenType.Semicolon])) l.getToken();
+    else
+    {
+      cond = expression();
+      Expect(TokenType.Semicolon);
+    }
+    if (Match([TokenType.ParenClose])) l.getToken();
+    else
+    {
+      action = expression();
+      Expect(TokenType.ParenClose);
+    }
+
+    Statement body = statement();
+    return new Statement.Loop(init, cond, action, body);
   }
   Statement expressionStatement()
   {
