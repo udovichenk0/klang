@@ -1,3 +1,5 @@
+using System.Text;
+
 public class Environment(Environment? environment)
 {
   Dictionary<string, object?> vars = new();
@@ -35,6 +37,7 @@ public class Environment(Environment? environment)
     if (enclosing is not null)
     {
       enclosing.Assign(key, value);
+      return;
     }
 
     throw new RuntimeException($"undefined variable {key}");

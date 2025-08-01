@@ -47,6 +47,18 @@ public abstract class Statement
       i.environment.Set(ident, null);
     }
   }
+  public class While(Expr cond, Statement statement) : Statement
+  {
+    public override void Execute(Interpreter i)
+    {
+      object eval = cond.Evaluate(i);
+      while (cond.IsTruthy(eval))
+      {
+        statement.Execute(i);
+        eval = cond.Evaluate(i);
+      }
+    }
+  }
   public class Condition(Expr condition, Statement ifStatement, Statement? elseStatement) : Statement
   {
 

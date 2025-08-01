@@ -1,16 +1,6 @@
-{
-  var a = 1;
-  var b = 2;
-  if(a and b)
-    print "if statement" + "sdf" + a and b;
-  else
-    print "else statement";
-}
-{
-  var a = 1;
-  var b = nil;
-  if(a and b)
-    print "if statement" + "sdf" + a and b;
-  else
-    print "else statement";
+var a = -10;
+
+while(a <= 10){
+  print a;
+  a = a + 1; 
 }

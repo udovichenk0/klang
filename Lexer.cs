@@ -30,6 +30,7 @@ public enum TokenType
   Else,
   Or,
   And,
+  While,
 }
 
 public struct Token
@@ -50,6 +51,7 @@ class Lexer
     {"else", TokenType.Else },
     {"or", TokenType.Or },
     {"and", TokenType.And },
+    {"while", TokenType.While },
   };
   string source;
   int pos;

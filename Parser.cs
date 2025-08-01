@@ -28,6 +28,7 @@ class Parser
   {
     if (Match([TokenType.CurlyOpen])) return blockStatement();
     if (Match([TokenType.If])) return conditionStatement();
+    if (Match([TokenType.While])) return whileStatement();
     if (Match([TokenType.Print])) return printStatement();
     if (Match([TokenType.Var])) return varDeclStatement();
     return expressionStatement();
@@ -47,6 +48,15 @@ class Parser
     }
 
     return new Statement.Condition(condition, ifStm, elseStm);
+  }
+  Statement whileStatement()
+  {
+    l.getToken();
+    Expect(TokenType.ParenOpen);
+    Expr cond = expression();
+    Expect(TokenType.ParenClose);
+    Statement stm = statement();
+    return new Statement.While(cond, stm);
   }
   Statement expressionStatement()
   {
