@@ -1,3 +1,4 @@
-for(var a = 0; a < 10; a++){
+func funcname(a){
   print a;
 }
+funcname(1);

@@ -1,5 +1,4 @@
 
-using System.Runtime.CompilerServices;
 using klang;
 
 public abstract class Statement
@@ -23,7 +22,7 @@ public abstract class Statement
   }
   public class Block(List<Statement> statements) : Statement
   {
-    List<Statement> statements = statements;
+    public List<Statement> statements = statements;
     public override void Execute(Interpreter i)
     {
       Environment innerEnvironment = new(i.environment);
@@ -32,6 +31,8 @@ public abstract class Statement
       {
         statement.Execute(i);
       }
+      if (innerEnvironment.enclosing is not null)
+        i.environment = innerEnvironment.enclosing;
     }
   }
   public class VarDecl(string ident, Expr? expr) : Statement
@@ -45,6 +46,17 @@ public abstract class Statement
         return;
       }
       i.environment.Set(ident, null);
+    }
+  }
+  public class FuncDecl(string ident, List<Expr.Ident> args, List<Statement> statements) : Statement
+  {
+    public string ident = ident;
+    public List<Expr.Ident> args = args;
+    public List<Statement> statements = statements;
+    public override void Execute(Interpreter i)
+    {
+      Function function = new(statements, args);
+      i.environment.Set(ident, function);
     }
   }
   public class Loop(Statement? init, Expr? cond, Expr? action, Statement body) : Statement
@@ -74,7 +86,6 @@ public abstract class Statement
   }
   public class Condition(Expr condition, Statement ifStatement, Statement? elseStatement) : Statement
   {
-
     public override void Execute(Interpreter i)
     {
       object result = condition.Evaluate(i);

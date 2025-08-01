@@ -3,7 +3,7 @@ using System.Text;
 public class Environment(Environment? environment)
 {
   Dictionary<string, object?> vars = new();
-  Environment? enclosing = environment;
+  public Environment? enclosing = environment;
 
   public object Get(string key)
   {

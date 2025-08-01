@@ -173,6 +173,17 @@ public abstract class Expr
       return i.environment.Get(token.lit);
     }
   }
+  public class Call(string ident, List<Expr> args) : Expr
+  {
+    public override object Evaluate(Interpreter i)
+    {
+      object f = i.environment.Get(ident);
+      if (f is not Function) throw new RuntimeException($"{ident} is not a function");
+      Function func = (Function)f;
+      func.Call(i, args);
+      return "nil";
+    }
+  }
   public class Assign(Ident ident, Expr expr) : Expr
   {
     public Ident ident = ident;
@@ -185,9 +196,9 @@ public abstract class Expr
   }
   public bool IsTruthy(object value)
   {
-    if (value is string && ((string)value).Length > 0 && (string)value != "nil") return true;
-    else if (value is double && ((double)value) > 0) return true;
-    else if (value is bool) return (bool)value;
+    if (value is string v && v.Length > 0 && v != "nil") return true;
+    else if (value is double v1 && v1 > 0) return true;
+    else if (value is bool v2) return v2;
     return false;
   }
 }

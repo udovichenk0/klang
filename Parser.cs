@@ -1,4 +1,4 @@
-using System.Reflection;
+using System.Data.Common;
 
 class Parser
 {
@@ -31,6 +31,7 @@ class Parser
     if (Match([TokenType.CurlyOpen])) return BlockStatement();
     if (Match([TokenType.If])) return ConditionStatement();
     if (Match([TokenType.While])) return WhileStatement();
+    if (Match([TokenType.Func])) return FuncDeclStatement();
     if (Match([TokenType.For])) return ForStatement();
     if (Match([TokenType.Print])) return PrintStatement();
     if (Match([TokenType.Var])) return VarDeclStatement();
@@ -116,6 +117,34 @@ class Parser
     }
     Expect(TokenType.Semicolon);
     return new Statement.VarDecl(name, expr);
+  }
+  Statement FuncDeclStatement()
+  {
+    l.getToken();
+    string name = l.token.lit;
+    Expect(TokenType.Ident);
+    Expect(TokenType.ParenOpen);
+    List<Expr.Ident> args = [];
+    if (!Match([TokenType.ParenClose]))
+    {
+      Expr expr = Expression();
+      if (expr is Expr.Ident firstParam)
+        args.Add(firstParam);
+      else throw new ParseException("params must be valid identificators");
+      while (Match([TokenType.Coma]))
+      {
+        l.getToken();
+        expr = Expression();
+        if (expr is Expr.Ident param)
+          args.Add(param);
+      }
+    }
+    Expect(TokenType.ParenClose);
+
+    int savedPos = l.pos;
+    Expect(TokenType.CurlyOpen);
+    l.pos = savedPos;
+    return new Statement.FuncDecl(name, args, BlockStatement().statements);
   }
   Statement.Print PrintStatement()
   {
@@ -221,10 +250,10 @@ class Parser
     {
       Token op = l.token;
       l.getToken(); // skip operator
-      Expr right = Unary();
+      Expr right = Call();
       return new Expr.Unary(op, right);
     }
-    Expr left = Primary();
+    Expr left = Call();
     if (Match([TokenType.PlusPlus, TokenType.MinusMinus]))
     {
       Token op = l.token;
@@ -233,6 +262,28 @@ class Parser
       throw new ParseException($"can't do '{op.lit}' operation to right value");
     }
     return left;
+  }
+  Expr Call()
+  {
+    Expr primary = Primary();
+    if (Match([TokenType.ParenOpen]))
+    {
+      l.getToken();
+      List<Expr> args = [];
+      if (!Match([TokenType.ParenClose]))
+      {
+        args.Add(Expression());
+        while (Match([TokenType.Coma]))
+        {
+          l.getToken();
+          args.Add(Expression());
+        }
+      }
+      Expect(TokenType.ParenClose);
+      Expr.Ident var = (Expr.Ident)primary;
+      return new Expr.Call(var.token.lit, args);
+    }
+    return primary;
   }
   Expr Primary()
   {

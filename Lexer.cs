@@ -34,7 +34,8 @@ public enum TokenType
   And,
   While,
   For,
-  Func
+  Func,
+  Coma
 }
 
 public struct Token
@@ -60,7 +61,7 @@ class Lexer
     {"func", TokenType.Func}
   };
   string source;
-  int pos;
+  public int pos;
   int start;
   public bool error;
   public Token token;
@@ -128,6 +129,9 @@ class Lexer
         return;
       case '!':
         setToken(TokenType.Not);
+        return;
+      case ',':
+        setToken(TokenType.Coma);
         return;
       case '=':
         if (Peek() == '=')
