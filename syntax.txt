@@ -1,5 +1,0 @@
-expression -> temp
-temp -> factor ("+" | "-" factor)*
-factor -> unary ("*" | "/" unary)*
-//unary -> primary | ("-" | "!") unary
-primary -> number | string | "(" expression ")"

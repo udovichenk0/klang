@@ -38,28 +38,15 @@ class Parser
     Expect(TokenType.ParenOpen);
     Expr condition = expression();
     Expect(TokenType.ParenClose);
-    Expect(TokenType.CurlyOpen);
-    List<Statement> ifStatements = [];
-    List<Statement>? elseStatements = [];
-    while (!Match([TokenType.CurlyClose]))
-    {
-      Statement stm = statement();
-      ifStatements.Add(stm);
-    }
-    Expect(TokenType.CurlyClose);
+    Statement ifStm = statement();
+    Statement? elseStm = null;
     if (Match([TokenType.Else]))
     {
       l.getToken();
-      Expect(TokenType.CurlyOpen);
-      while (!Match([TokenType.CurlyClose]))
-      {
-        Statement stm = statement();
-        elseStatements.Add(stm);
-      }
-      Expect(TokenType.CurlyClose);
+      elseStm = statement();
     }
-    else elseStatements = null;
-    return new Statement.Condition(condition, ifStatements, elseStatements);
+
+    return new Statement.Condition(condition, ifStm, elseStm);
   }
   Statement expressionStatement()
   {

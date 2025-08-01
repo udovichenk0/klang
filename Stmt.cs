@@ -47,21 +47,15 @@ public abstract class Statement
       i.environment.Set(ident, null);
     }
   }
-  public class Condition(Expr condition, List<Statement> ifStatements, List<Statement>? elseStatements) : Statement
+  public class Condition(Expr condition, Statement ifStatement, Statement? elseStatement) : Statement
   {
 
     public override void Execute(Interpreter i)
     {
       object result = condition.Evaluate(i);
       bool isTruthy = condition.IsTruthy(result);
-
-      List<Statement> statements = [];
-      if (isTruthy) statements = ifStatements;
-      else if (!isTruthy && elseStatements is not null) statements = elseStatements;
-      foreach (Statement statement in statements)
-      {
-        statement.Execute(i);
-      }
+      if (isTruthy) ifStatement.Execute(i);
+      else if (!isTruthy && elseStatement is not null) elseStatement.Execute(i);
     }
   }
 }
