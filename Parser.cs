@@ -28,19 +28,19 @@ class Parser
   }
   Statement statement()
   {
-    if (Match([TokenType.CurlyOpen])) return blockStatement();
-    if (Match([TokenType.If])) return conditionStatement();
-    if (Match([TokenType.While])) return whileStatement();
-    if (Match([TokenType.For])) return forStatement();
-    if (Match([TokenType.Print])) return printStatement();
-    if (Match([TokenType.Var])) return varDeclStatement();
-    return expressionStatement();
+    if (Match([TokenType.CurlyOpen])) return BlockStatement();
+    if (Match([TokenType.If])) return ConditionStatement();
+    if (Match([TokenType.While])) return WhileStatement();
+    if (Match([TokenType.For])) return ForStatement();
+    if (Match([TokenType.Print])) return PrintStatement();
+    if (Match([TokenType.Var])) return VarDeclStatement();
+    return ExpressionStatement();
   }
-  Statement conditionStatement()
+  Statement.Condition ConditionStatement()
   {
     l.getToken();
     Expect(TokenType.ParenOpen);
-    Expr condition = expression();
+    Expr condition = Expression();
     Expect(TokenType.ParenClose);
     Statement ifStm = statement();
     Statement? elseStm = null;
@@ -52,16 +52,16 @@ class Parser
 
     return new Statement.Condition(condition, ifStm, elseStm);
   }
-  Statement whileStatement()
+  Statement.Loop WhileStatement()
   {
     l.getToken();
     Expect(TokenType.ParenOpen);
-    Expr cond = expression();
+    Expr cond = Expression();
     Expect(TokenType.ParenClose);
     Statement body = statement();
     return new Statement.Loop(null, cond, null, body);
   }
-  Statement forStatement()
+  Statement.Loop ForStatement()
   {
     l.getToken();
     Expect(TokenType.ParenOpen);
@@ -69,30 +69,30 @@ class Parser
     Expr? cond = null;
     Expr? action = null;
     if (Match([TokenType.Semicolon])) l.getToken();
-    else init = varDeclStatement();
+    else init = VarDeclStatement();
     if (Match([TokenType.Semicolon])) l.getToken();
     else
     {
-      cond = expression();
+      cond = Expression();
       Expect(TokenType.Semicolon);
     }
     if (Match([TokenType.ParenClose])) l.getToken();
     else
     {
-      action = expression();
+      action = Expression();
       Expect(TokenType.ParenClose);
     }
 
     Statement body = statement();
     return new Statement.Loop(init, cond, action, body);
   }
-  Statement expressionStatement()
+  Statement.Expression ExpressionStatement()
   {
-    Expr expr = expression();
+    Expr expr = Expression();
     Expect(TokenType.Semicolon);
     return new Statement.Expression(expr);
   }
-  Statement blockStatement()
+  Statement.Block BlockStatement()
   {
     l.getToken();
     List<Statement> statements = [];
@@ -103,7 +103,7 @@ class Parser
     Expect(TokenType.CurlyClose);
     return new Statement.Block(statements);
   }
-  Statement varDeclStatement()
+  Statement.VarDecl VarDeclStatement()
   {
     l.getToken();
     string name = l.token.lit;
@@ -112,64 +112,64 @@ class Parser
     if (Match([TokenType.Equal]))
     {
       l.getToken(); // skip equal token
-      expr = expression();
+      expr = Expression();
     }
     Expect(TokenType.Semicolon);
     return new Statement.VarDecl(name, expr);
   }
-  Statement printStatement()
+  Statement.Print PrintStatement()
   {
     l.getToken();
-    Expr expr = expression();
+    Expr expr = Expression();
     Expect(TokenType.Semicolon);
     return new Statement.Print(expr);
   }
-  Expr expression()
+  Expr Expression()
   {
-    return assignment();
+    return Assignment();
   }
-  Expr assignment()
+  Expr Assignment()
   {
-    Expr ident = or();
+    Expr ident = Or();
     if (Match([TokenType.Equal]))
     {
       l.getToken(); // skip operator
       if (ident is Expr.Ident)
       {
-        Expr expr = or();
+        Expr expr = Or();
         return new Expr.Assign((Expr.Ident)ident, expr);
       }
       throw new ParseException("invalid assignment target");
     }
     return ident;
   }
-  Expr or()
+  Expr Or()
   {
-    Expr leftExpr = and();
+    Expr leftExpr = And();
     if (Match([TokenType.Or]))
     {
       Token op = l.token;
       l.getToken();
-      Expr rightExpr = and();
+      Expr rightExpr = And();
       return new Expr.Logical(leftExpr, op, rightExpr);
     }
     return leftExpr;
   }
-  Expr and()
+  Expr And()
   {
-    Expr leftExpr = equality();
+    Expr leftExpr = Equality();
     while (Match([TokenType.And]))
     {
       Token op = l.token;
       l.getToken();
-      Expr rightExpr = equality();
+      Expr rightExpr = Equality();
       return new Expr.Logical(leftExpr, op, rightExpr);
     }
     return leftExpr;
   }
-  Expr equality()
+  Expr Equality()
   {
-    Expr leftExpr = temp();
+    Expr leftExpr = Temp();
     if (Match([
       TokenType.Less,
       TokenType.More,
@@ -180,14 +180,14 @@ class Parser
     {
       Token op = l.token;
       l.getToken(); // skip operator
-      Expr rightExpr = temp();
+      Expr rightExpr = Temp();
       return new Expr.Binary(leftExpr, op, rightExpr);
     }
     return leftExpr;
   }
-  Expr temp()
+  Expr Temp()
   {
-    Expr expr = factor();
+    Expr expr = Factor();
     while (Match([
       TokenType.Minus,
       TokenType.Plus,
@@ -195,14 +195,14 @@ class Parser
     {
       Token op = l.token;
       l.getToken(); // skip operator
-      Expr rightExpr = factor();
+      Expr rightExpr = Factor();
       expr = new Expr.Binary(expr, op, rightExpr);
     }
     return expr;
   }
-  Expr factor()
+  Expr Factor()
   {
-    Expr expr = unary();
+    Expr expr = Unary();
     while (Match([
       TokenType.Div,
       TokenType.Mul,
@@ -210,21 +210,21 @@ class Parser
     {
       Token op = l.token;
       l.getToken(); // skip operator
-      Expr rightExpr = unary();
+      Expr rightExpr = Unary();
       expr = new Expr.Binary(expr, op, rightExpr);
     }
     return expr;
   }
-  Expr unary()
+  Expr Unary()
   {
     if (Match([TokenType.Not, TokenType.Minus]))
     {
       Token op = l.token;
       l.getToken(); // skip operator
-      Expr right = unary();
+      Expr right = Unary();
       return new Expr.Unary(op, right);
     }
-    Expr left = primary();
+    Expr left = Primary();
     if (Match([TokenType.PlusPlus, TokenType.MinusMinus]))
     {
       Token op = l.token;
@@ -234,7 +234,7 @@ class Parser
     }
     return left;
   }
-  Expr primary()
+  Expr Primary()
   {
     Token token = l.token;
     l.getToken();
@@ -249,7 +249,7 @@ class Parser
       case TokenType.Ident:
         return new Expr.Ident(token);
       case TokenType.ParenOpen:
-        Expr expr = expression();
+        Expr expr = Expression();
         Expect(TokenType.ParenClose);
         return new Expr.Group(expr);
     }
