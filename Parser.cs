@@ -27,9 +27,39 @@ class Parser
   Statement statement()
   {
     if (Match([TokenType.CurlyOpen])) return blockStatement();
+    if (Match([TokenType.If])) return conditionStatement();
     if (Match([TokenType.Print])) return printStatement();
     if (Match([TokenType.Var])) return varDeclStatement();
     return expressionStatement();
+  }
+  Statement conditionStatement()
+  {
+    l.getToken();
+    Expect(TokenType.ParenOpen);
+    Expr condition = expression();
+    Expect(TokenType.ParenClose);
+    Expect(TokenType.CurlyOpen);
+    List<Statement> ifStatements = [];
+    List<Statement>? elseStatements = [];
+    while (!Match([TokenType.CurlyClose]))
+    {
+      Statement stm = statement();
+      ifStatements.Add(stm);
+    }
+    Expect(TokenType.CurlyClose);
+    if (Match([TokenType.Else]))
+    {
+      l.getToken();
+      Expect(TokenType.CurlyOpen);
+      while (!Match([TokenType.CurlyClose]))
+      {
+        Statement stm = statement();
+        elseStatements.Add(stm);
+      }
+      Expect(TokenType.CurlyClose);
+    }
+    else elseStatements = null;
+    return new Statement.Condition(condition, ifStatements, elseStatements);
   }
   Statement expressionStatement()
   {
@@ -161,9 +191,9 @@ class Parser
         return new Expr.Primary(token);
       case TokenType.Ident:
         return new Expr.Ident(token);
-      case TokenType.OpenParen:
+      case TokenType.ParenOpen:
         Expr expr = expression();
-        Expect(TokenType.CloseParen);
+        Expect(TokenType.ParenClose);
         return new Expr.Group(expr);
     }
     throw new ParseException($"unknown expression '{token.lit}'");

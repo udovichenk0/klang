@@ -1,4 +1,5 @@
 
+using System.Runtime.CompilerServices;
 using klang;
 
 public abstract class Statement
@@ -44,6 +45,25 @@ public abstract class Statement
         return;
       }
       i.environment.Set(ident, null);
+    }
+  }
+  public class Condition(Expr condition, List<Statement> ifStatements, List<Statement>? elseStatements) : Statement
+  {
+
+    public override void Execute(Interpreter i)
+    {
+      object result = condition.Evaluate(i);
+      bool isTruthy = false;
+      if (result is string && ((string)result).Length > 0 && (string)result != "nil") isTruthy = true;
+      else if (result is double && ((double)result) > 0) isTruthy = true;
+      else if (result is bool) isTruthy = (bool)result;
+      List<Statement> statements = [];
+      if (isTruthy) statements = ifStatements;
+      else if (!isTruthy && elseStatements is not null) statements = elseStatements;
+      foreach (Statement statement in statements)
+      {
+        statement.Execute(i);
+      }
     }
   }
 }

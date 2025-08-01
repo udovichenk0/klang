@@ -7,8 +7,8 @@ public enum TokenType
   Minus,
   Div,
   Mul,
-  OpenParen,
-  CloseParen,
+  ParenOpen,
+  ParenClose,
   Not,
   EOL,
   Ident,
@@ -26,6 +26,8 @@ public enum TokenType
   EqualEqual,
   CurlyOpen,
   CurlyClose,
+  If,
+  Else
 }
 
 public struct Token
@@ -42,6 +44,8 @@ class Lexer
     {"print", TokenType.Print },
     {"var", TokenType.Var },
     {"nil", TokenType.Nil },
+    {"if", TokenType.If },
+    {"else", TokenType.Else },
   };
   string source;
   int pos;
@@ -85,10 +89,10 @@ class Lexer
         setToken(TokenType.Div);
         return;
       case '(':
-        setToken(TokenType.OpenParen);
+        setToken(TokenType.ParenOpen);
         return;
       case ')':
-        setToken(TokenType.CloseParen);
+        setToken(TokenType.ParenClose);
         return;
       case '{':
         setToken(TokenType.CurlyOpen);
