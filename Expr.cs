@@ -116,7 +116,30 @@ public abstract class Expr
       {
         case TokenType.Not:
           return !IsTruthy(val);
-        case TokenType.Minus:
+        case TokenType.PlusPlus:
+          if (val is double)
+          {
+            double newval = (double)val + 1;
+            if (expr is not Ident)
+              throw new RuntimeException($"increment target must be variable");
+            Ident var = (Ident)expr;
+            i.environment.Assign(var.token.lit, newval);
+            return newval;
+          }
+          throw new RuntimeException($"can't increment non integer value '{val}'");
+        case TokenType.MinusMinus:
+          if (val is double)
+          {
+            double newval = (double)val - 1;
+            if (expr is not Ident)
+              throw new RuntimeException($"decrement target must be variable");
+            Ident var = (Ident)expr;
+            i.environment.Assign(var.token.lit, newval);
+            return newval;
+          }
+          throw new RuntimeException($"can't decrement non integer value '{val}'");
+        case
+           TokenType.Minus:
           if (val is double)
           {
             return -(double)val;

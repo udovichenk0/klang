@@ -4,7 +4,9 @@ public enum TokenType
   Number,
   String,
   Plus,
+  PlusPlus,
   Minus,
+  MinusMinus,
   Div,
   Mul,
   ParenOpen,
@@ -85,10 +87,21 @@ class Lexer
     switch (c)
     {
       case '+':
-        setToken(TokenType.Plus);
+
+        if (Peek() == '+')
+        {
+          setToken(TokenType.PlusPlus);
+          Next();
+        }
+        else setToken(TokenType.Plus);
         return;
       case '-':
-        setToken(TokenType.Minus);
+        if (Peek() == '-')
+        {
+          setToken(TokenType.MinusMinus);
+          Next();
+        }
+        else setToken(TokenType.Minus);
         return;
       case '*':
         setToken(TokenType.Mul);

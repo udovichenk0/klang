@@ -224,7 +224,15 @@ class Parser
       Expr right = unary();
       return new Expr.Unary(op, right);
     }
-    return primary();
+    Expr left = primary();
+    if (Match([TokenType.PlusPlus, TokenType.MinusMinus]))
+    {
+      Token op = l.token;
+      l.getToken(); // skip operator
+      if (left is Expr.Ident) return new Expr.Unary(op, left);
+      throw new ParseException($"can't do '{op.lit}' operation to right value");
+    }
+    return left;
   }
   Expr primary()
   {
