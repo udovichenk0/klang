@@ -1,6 +1,7 @@
 var a = 1;
-if(a){
-  print a;
+var b = 2;
+if(a and b){
+  print "if statement" + "sdf" + a and b;
 } else {
   print "else statement";
 }

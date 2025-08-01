@@ -58,6 +58,31 @@ public abstract class Expr
       throw new RuntimeException($"unknown operation: {op.lit}");
     }
   }
+  public class Logical(Expr left, Token op, Expr right) : Expr
+  {
+    public override object Evaluate(Interpreter i)
+    {
+      object eval = left.Evaluate(i);
+      if (op.type == TokenType.Or)
+      {
+        if (IsTruthy(eval)) return eval;
+        return right.Evaluate(i);
+      }
+      else
+      {
+        object leftEval = left.Evaluate(i);
+        object rightEval = right.Evaluate(i);
+        if (!IsTruthy(leftEval))
+        {
+          Console.WriteLine(leftEval);
+          return leftEval;
+        }
+        if (!IsTruthy(rightEval)) return rightEval;
+        return rightEval;
+      }
+      throw new NotImplementedException();
+    }
+  }
   public class Primary : Expr
   {
     public Token token;
@@ -69,7 +94,7 @@ public abstract class Expr
     {
       if (token.type == TokenType.True) return true;
       if (token.type == TokenType.False) return false;
-      if (token.type == TokenType.Nil) return null;
+      if (token.type == TokenType.Nil) return "nil";
       if (token.type == TokenType.Number) return Convert.ToDouble(token.lit);
 
       return token.lit;
@@ -90,25 +115,7 @@ public abstract class Expr
       switch (op.type)
       {
         case TokenType.Not:
-          if (val is string)
-          {
-            if (((string)val).Length == 0) return true;
-            return false;
-          }
-          else if (val is double)
-          {
-            if ((double)val == 0) return true;
-            return false;
-          }
-          else if (val is bool)
-          {
-            if ((bool)val)
-            {
-              return false;
-            }
-            return true;
-          }
-          break;
+          return !IsTruthy(val);
         case TokenType.Minus:
           if (val is double)
           {
@@ -152,6 +159,13 @@ public abstract class Expr
       i.environment.Assign(ident.token.lit, value);
       return value;
     }
+  }
+  public bool IsTruthy(object value)
+  {
+    if (value is string && ((string)value).Length > 0 && (string)value != "nil") return true;
+    else if (value is double && ((double)value) > 0) return true;
+    else if (value is bool) return (bool)value;
+    return false;
   }
 }
 

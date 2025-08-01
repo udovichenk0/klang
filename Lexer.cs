@@ -27,7 +27,9 @@ public enum TokenType
   CurlyOpen,
   CurlyClose,
   If,
-  Else
+  Else,
+  Or,
+  And,
 }
 
 public struct Token
@@ -46,6 +48,8 @@ class Lexer
     {"nil", TokenType.Nil },
     {"if", TokenType.If },
     {"else", TokenType.Else },
+    {"or", TokenType.Or },
+    {"and", TokenType.And },
   };
   string source;
   int pos;

@@ -53,10 +53,8 @@ public abstract class Statement
     public override void Execute(Interpreter i)
     {
       object result = condition.Evaluate(i);
-      bool isTruthy = false;
-      if (result is string && ((string)result).Length > 0 && (string)result != "nil") isTruthy = true;
-      else if (result is double && ((double)result) > 0) isTruthy = true;
-      else if (result is bool) isTruthy = (bool)result;
+      bool isTruthy = condition.IsTruthy(result);
+
       List<Statement> statements = [];
       if (isTruthy) statements = ifStatements;
       else if (!isTruthy && elseStatements is not null) statements = elseStatements;
