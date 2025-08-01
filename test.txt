@@ -1,4 +1,5 @@
-func funcname(a){
-  print a;
+func funcname(a, b){
+  var sum = a + b;
+  return sum;
 }
-funcname(1);
+print funcname(12, 8);

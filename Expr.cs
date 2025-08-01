@@ -180,8 +180,7 @@ public abstract class Expr
       object f = i.environment.Get(ident);
       if (f is not Function) throw new RuntimeException($"{ident} is not a function");
       Function func = (Function)f;
-      func.Call(i, args);
-      return "nil";
+      return func.Call(i, args);
     }
   }
   public class Assign(Ident ident, Expr expr) : Expr

@@ -31,6 +31,7 @@ class Parser
     if (Match([TokenType.CurlyOpen])) return BlockStatement();
     if (Match([TokenType.If])) return ConditionStatement();
     if (Match([TokenType.While])) return WhileStatement();
+    if (Match([TokenType.Return])) return ReturnStatement();
     if (Match([TokenType.Func])) return FuncDeclStatement();
     if (Match([TokenType.For])) return ForStatement();
     if (Match([TokenType.Print])) return PrintStatement();
@@ -152,6 +153,17 @@ class Parser
     Expr expr = Expression();
     Expect(TokenType.Semicolon);
     return new Statement.Print(expr);
+  }
+  Statement.Return ReturnStatement()
+  {
+    l.getToken();
+    Expr? value = null;
+    if (!Match([TokenType.Semicolon]))
+    {
+      value = Expression();
+    }
+    Expect(TokenType.Semicolon);
+    return new Statement.Return(value);
   }
   Expr Expression()
   {

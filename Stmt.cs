@@ -1,4 +1,5 @@
 
+using System.IO.Pipelines;
 using klang;
 
 public abstract class Statement
@@ -84,6 +85,16 @@ public abstract class Statement
       }
     }
   }
+  public class Return(Expr? expr) : Statement
+  {
+    public override void Execute(Interpreter i)
+    {
+      if (expr is not null)
+      {
+        throw new ReturnException(expr.Evaluate(i));
+      }
+    }
+  }
   public class Condition(Expr condition, Statement ifStatement, Statement? elseStatement) : Statement
   {
     public override void Execute(Interpreter i)
@@ -94,4 +105,8 @@ public abstract class Statement
       else if (!isTruthy && elseStatement is not null) elseStatement.Execute(i);
     }
   }
+}
+class ReturnException(object value) : Exception
+{
+  public object? value = value;
 }

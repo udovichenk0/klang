@@ -14,13 +14,23 @@ class Function(List<Statement> statements, List<Expr.Ident> parameters)
     {
       env.Set(parameters[i].token.lit, args[i].Evaluate(interpreter));
     }
-    foreach (Statement statement in statements)
+    try
     {
-      statement.Execute(interpreter);
+      foreach (Statement statement in statements)
+      {
+        statement.Execute(interpreter);
+      }
     }
-
-    if (env.enclosing is Environment environment)
-      interpreter.environment = environment;
-    return "";
+    catch (ReturnException e)
+    {
+      if (e.value is null) return "nil";
+      return e.value;
+    }
+    finally
+    {
+      if (env.enclosing is Environment environment)
+        interpreter.environment = environment;
+    }
+    return "nil";
   }
 }
