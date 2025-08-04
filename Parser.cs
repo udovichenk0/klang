@@ -1,5 +1,3 @@
-using System.Data.Common;
-
 class Parser
 {
   Lexer l;
@@ -16,7 +14,7 @@ class Parser
     {
       while (!l.eof)
       {
-        statements.Add(statement());
+        statements.Add(Statement());
       }
       return statements;
     }
@@ -26,7 +24,7 @@ class Parser
       throw;
     }
   }
-  Statement statement()
+  Statement Statement()
   {
     if (Match([TokenType.CurlyOpen])) return BlockStatement();
     if (Match([TokenType.If])) return ConditionStatement();
@@ -49,13 +47,13 @@ class Parser
       throw new ParseException("Embedded statement cannot be a declaration");
     }
 
-    Statement ifStm = statement();
+    Statement ifStm = Statement();
 
     Statement? elseStm = null;
     if (Match([TokenType.Else]))
     {
       l.getToken();
-      elseStm = statement();
+      elseStm = Statement();
     }
 
     return new Statement.Condition(condition, ifStm, elseStm);
@@ -70,7 +68,7 @@ class Parser
     {
       throw new ParseException("Embedded statement cannot be a declaration");
     }
-    Statement body = statement();
+    Statement body = Statement();
     return new Statement.Loop(null, cond, null, body);
   }
   Statement.Loop ForStatement()
@@ -100,7 +98,7 @@ class Parser
       throw new ParseException("Embedded statement cannot be a declaration");
     }
 
-    Statement body = statement();
+    Statement body = Statement();
     return new Statement.Loop(init, cond, action, body);
   }
   Statement.Expression ExpressionStatement()
@@ -115,7 +113,7 @@ class Parser
     List<Statement> statements = [];
     while (IsEnd() || !Match([TokenType.CurlyClose]))
     {
-      statements.Add(statement());
+      statements.Add(Statement());
     }
     Expect(TokenType.CurlyClose);
     return new Statement.Block(statements);

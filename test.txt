@@ -1,4 +1,13 @@
-var b = 10;
-{
-  for(var a = 0; a < 10; a++) print a;
+func test(){
+  var i = 0;
+  print "outer func i: " + i;
+  func innerFunc(){
+    i = i + 1;
+    print "print i: " + i;
+  }
+  return innerFunc;
 }
+
+var innerFunc = test();
+
+innerFunc();

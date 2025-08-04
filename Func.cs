@@ -1,6 +1,10 @@
 using klang;
 
-class Function(List<Statement> statements, List<Expr.Ident> parameters)
+class Function(
+  List<Statement> statements,
+  List<Expr.Ident> parameters,
+  Environment closure
+  )
 {
   public object Call(Interpreter interpreter, List<Expr> args)
   {
@@ -8,7 +12,8 @@ class Function(List<Statement> statements, List<Expr.Ident> parameters)
     {
       Console.WriteLine($"Expected {parameters.Count} arguments, but got {args.Count}");
     }
-    Environment env = new(interpreter.environment);
+    var savedEnv = interpreter.environment;
+    Environment env = new(closure);
     interpreter.environment = env;
     for (int i = 0; i < args.Count; i++)
     {
@@ -28,8 +33,7 @@ class Function(List<Statement> statements, List<Expr.Ident> parameters)
     }
     finally
     {
-      if (env.enclosing is Environment environment)
-        interpreter.environment = environment;
+      interpreter.environment = savedEnv;
     }
     return "nil";
   }

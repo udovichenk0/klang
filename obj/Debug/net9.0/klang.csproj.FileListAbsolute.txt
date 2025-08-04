@@ -12,3 +12,4 @@ F:\projects\klang\obj\Debug\net9.0\refint\klang.dll
 F:\projects\klang\obj\Debug\net9.0\klang.pdb
 F:\projects\klang\obj\Debug\net9.0\klang.genruntimeconfig.cache
 F:\projects\klang\obj\Debug\net9.0\ref\klang.dll
+F:\projects\klang\obj\Debug\net9.0\klang.sourcelink.json

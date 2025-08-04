@@ -59,7 +59,8 @@ public abstract class Statement
     public List<Statement> statements = statements;
     public override void Execute(Interpreter i)
     {
-      Function function = new(statements, args);
+      Environment closure = i.environment;
+      Function function = new(statements, args, closure);
       i.environment.Set(name.lit, function);
     }
   }

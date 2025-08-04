@@ -1,1 +1,0 @@
-forbid to write declaration in if statement without block 
