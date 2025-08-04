@@ -60,6 +60,8 @@ public abstract class Expr
   }
   public class Logical(Expr left, Token op, Expr right) : Expr
   {
+    public Expr left = left;
+    public Expr right = right;
     public override object Evaluate(Interpreter i)
     {
       object eval = left.Evaluate(i);
@@ -123,7 +125,7 @@ public abstract class Expr
             if (expr is not Ident)
               throw new RuntimeException($"increment target must be variable");
             Ident var = (Ident)expr;
-            i.environment.Assign(var.token.lit, newval);
+            i.environment.Assign(var.name.lit, newval);
             return newval;
           }
           throw new RuntimeException($"can't increment non integer value '{val}'");
@@ -134,7 +136,7 @@ public abstract class Expr
             if (expr is not Ident)
               throw new RuntimeException($"decrement target must be variable");
             Ident var = (Ident)expr;
-            i.environment.Assign(var.token.lit, newval);
+            i.environment.Assign(var.name.lit, newval);
             return newval;
           }
           throw new RuntimeException($"can't decrement non integer value '{val}'");
@@ -163,22 +165,30 @@ public abstract class Expr
   }
   public class Ident : Expr
   {
-    public Token token;
+    public Token name;
     public Ident(Token token)
     {
-      this.token = token;
+      this.name = token;
     }
     public override object Evaluate(Interpreter i)
     {
-      return i.environment.Get(token.lit);
+      return LookupVariable(name, i);
     }
   }
-  public class Call(string ident, List<Expr> args) : Expr
+  object LookupVariable(Token name, Interpreter i)
   {
+    bool has = i.locals.TryGetValue(name, out int distance);
+    if (!has) return i.environment.GetFromGlobal(name);
+    return i.environment.GetAt(name, distance);
+  }
+  public class Call(Token name, List<Expr> args) : Expr
+  {
+    public Token name = name;
+    public List<Expr> args = args;
     public override object Evaluate(Interpreter i)
     {
-      object f = i.environment.Get(ident);
-      if (f is not Function) throw new RuntimeException($"{ident} is not a function");
+      object f = i.environment.Get(name);
+      if (f is not Function) throw new RuntimeException($"{name.lit} is not a function");
       Function func = (Function)f;
       return func.Call(i, args);
     }
@@ -186,10 +196,11 @@ public abstract class Expr
   public class Assign(Ident ident, Expr expr) : Expr
   {
     public Ident ident = ident;
+    public Expr expr = expr;
     public override object Evaluate(Interpreter i)
     {
       object value = expr.Evaluate(i);
-      i.environment.Assign(ident.token.lit, value);
+      i.environment.Assign(ident.name.lit, value);
       return value;
     }
   }

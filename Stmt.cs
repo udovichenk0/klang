@@ -1,5 +1,4 @@
 
-using System.IO.Pipelines;
 using klang;
 
 public abstract class Statement
@@ -8,6 +7,7 @@ public abstract class Statement
 
   public class Expression(Expr expr) : Statement
   {
+    public Expr expr = expr;
     public override void Execute(Interpreter i)
     {
       expr.Evaluate(i);
@@ -15,6 +15,7 @@ public abstract class Statement
   }
   public class Print(Expr expr) : Statement
   {
+    public Expr expr = expr;
     public override void Execute(Interpreter i)
     {
       object result = expr.Evaluate(i);
@@ -36,34 +37,42 @@ public abstract class Statement
         i.environment = innerEnvironment.enclosing;
     }
   }
-  public class VarDecl(string ident, Expr? expr) : Statement
+  public class VarDecl(Token ident, Expr? expr) : Statement
   {
+    public Token token = ident;
+    public Expr? expr = expr;
     public override void Execute(Interpreter i)
     {
       if (expr is not null)
       {
         object result = expr.Evaluate(i);
-        i.environment.Set(ident, result);
+        i.environment.Set(token.lit, result);
         return;
       }
-      i.environment.Set(ident, null);
+      i.environment.Set(token.lit, null);
     }
   }
-  public class FuncDecl(string ident, List<Expr.Ident> args, List<Statement> statements) : Statement
+  public class FuncDecl(Token ident, List<Expr.Ident> args, List<Statement> statements) : Statement
   {
-    public string ident = ident;
+    public Token name = ident;
     public List<Expr.Ident> args = args;
     public List<Statement> statements = statements;
     public override void Execute(Interpreter i)
     {
       Function function = new(statements, args);
-      i.environment.Set(ident, function);
+      i.environment.Set(name.lit, function);
     }
   }
   public class Loop(Statement? init, Expr? cond, Expr? action, Statement body) : Statement
   {
+    public Statement? init = init;
+    public Expr? cond = cond;
+    public Expr? action = action;
+    public Statement body = body;
     public override void Execute(Interpreter i)
     {
+      Environment savedEnv = i.environment;
+      i.environment = new Environment(savedEnv);
       init?.Execute(i);
       if (cond is not null)
       {
@@ -83,10 +92,12 @@ public abstract class Statement
           action?.Evaluate(i);
         }
       }
+      i.environment = savedEnv;
     }
   }
   public class Return(Expr? expr) : Statement
   {
+    public Expr? expr = expr;
     public override void Execute(Interpreter i)
     {
       if (expr is not null)
@@ -97,6 +108,9 @@ public abstract class Statement
   }
   public class Condition(Expr condition, Statement ifStatement, Statement? elseStatement) : Statement
   {
+    public Expr condition = condition;
+    public Statement ifStatement = ifStatement;
+    public Statement? elseStatement = elseStatement;
     public override void Execute(Interpreter i)
     {
       object result = condition.Evaluate(i);

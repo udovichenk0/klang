@@ -12,7 +12,7 @@ class Function(List<Statement> statements, List<Expr.Ident> parameters)
     interpreter.environment = env;
     for (int i = 0; i < args.Count; i++)
     {
-      env.Set(parameters[i].token.lit, args[i].Evaluate(interpreter));
+      env.Set(parameters[i].name.lit, args[i].Evaluate(interpreter));
     }
     try
     {

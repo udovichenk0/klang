@@ -1,5 +1,4 @@
-func funcname(a, b){
-  var sum = a + b;
-  return sum;
+var b = 10;
+{
+  for(var a = 0; a < 10; a++) print a;
 }
-print funcname(12, 8);

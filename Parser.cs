@@ -44,7 +44,13 @@ class Parser
     Expect(TokenType.ParenOpen);
     Expr condition = Expression();
     Expect(TokenType.ParenClose);
+    if (Match([TokenType.Var, TokenType.Func]))
+    {
+      throw new ParseException("Embedded statement cannot be a declaration");
+    }
+
     Statement ifStm = statement();
+
     Statement? elseStm = null;
     if (Match([TokenType.Else]))
     {
@@ -60,6 +66,10 @@ class Parser
     Expect(TokenType.ParenOpen);
     Expr cond = Expression();
     Expect(TokenType.ParenClose);
+    if (Match([TokenType.Var, TokenType.Func]))
+    {
+      throw new ParseException("Embedded statement cannot be a declaration");
+    }
     Statement body = statement();
     return new Statement.Loop(null, cond, null, body);
   }
@@ -85,6 +95,11 @@ class Parser
       Expect(TokenType.ParenClose);
     }
 
+    if (Match([TokenType.Var, TokenType.Func]))
+    {
+      throw new ParseException("Embedded statement cannot be a declaration");
+    }
+
     Statement body = statement();
     return new Statement.Loop(init, cond, action, body);
   }
@@ -108,7 +123,7 @@ class Parser
   Statement.VarDecl VarDeclStatement()
   {
     l.getToken();
-    string name = l.token.lit;
+    Token token = l.token;
     Expect(TokenType.Ident);
     Expr? expr = null;
     if (Match([TokenType.Equal]))
@@ -117,12 +132,12 @@ class Parser
       expr = Expression();
     }
     Expect(TokenType.Semicolon);
-    return new Statement.VarDecl(name, expr);
+    return new Statement.VarDecl(token, expr);
   }
   Statement FuncDeclStatement()
   {
     l.getToken();
-    string name = l.token.lit;
+    Token name = l.token;
     Expect(TokenType.Ident);
     Expect(TokenType.ParenOpen);
     List<Expr.Ident> args = [];
@@ -293,7 +308,7 @@ class Parser
       }
       Expect(TokenType.ParenClose);
       Expr.Ident var = (Expr.Ident)primary;
-      return new Expr.Call(var.token.lit, args);
+      return new Expr.Call(var.name, args);
     }
     return primary;
   }
@@ -390,7 +405,7 @@ class Printer
     else if (expr is Expr.Ident)
     {
       Expr.Ident ident = (Expr.Ident)expr;
-      return ident.token.lit;
+      return ident.name.lit;
     }
     else
     {
