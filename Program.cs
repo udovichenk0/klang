@@ -38,6 +38,7 @@ public class Interpreter(List<Statement> stmts)
 {
   public Environment environment = new(null);
   public Dictionary<Token, int> locals = [];
+  public bool isInFunction = false;
 
   public void Interpret()
   {

@@ -39,6 +39,7 @@ class Resolver(Interpreter i)
 
   void ResolveFuncDecl(Statement.FuncDecl funcDecl)
   {
+    bool isInnerFunction = interpreter.isInFunction;
     Define(funcDecl.name);
 
     BeginScope();
@@ -49,9 +50,10 @@ class Resolver(Interpreter i)
       Define(arg.name);
     }
 
+    interpreter.isInFunction = true;
     Resolve(funcDecl.statements);
-
     EndScope();
+    interpreter.isInFunction = isInnerFunction;
   }
 
   void ResolvePrint(Statement.Print print)
@@ -80,6 +82,7 @@ class Resolver(Interpreter i)
   }
   void ResolveReturn(Statement.Return returnStmt)
   {
+    if (!interpreter.isInFunction) throw new ParseException("Can't return outside of a function");
     if (returnStmt.expr is not null)
       ResolveExpr(returnStmt.expr);
   }

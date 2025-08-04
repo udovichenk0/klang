@@ -4,10 +4,10 @@ func test(){
   func innerFunc(){
     i = i + 1;
     print "print i: " + i;
+    return 2;
   }
   return innerFunc;
 }
 
 var innerFunc = test();
-
-innerFunc();
+print innerFunc();
