@@ -175,11 +175,11 @@ public abstract class Expr
       return LookupVariable(name, i);
     }
   }
-  object LookupVariable(Token name, Interpreter i)
+  object LookupVariable(Token ident, Interpreter i)
   {
-    bool has = i.locals.TryGetValue(name, out int distance);
-    if (!has) return i.environment.GetFromGlobal(name);
-    return i.environment.GetAt(name, distance);
+    bool has = i.locals.TryGetValue(ident, out int distance);
+    if (!has) return i.environment.GetFromGlobal(ident);
+    return i.environment.GetAt(ident, distance);
   }
   public class Call(Token name, List<Expr> args) : Expr
   {
@@ -188,8 +188,8 @@ public abstract class Expr
     public override object Evaluate(Interpreter i)
     {
       object f = i.environment.Get(name);
-      if (f is not Function) throw new RuntimeException($"{name.lit} is not a function");
-      Function func = (Function)f;
+      if (f is not Callable) throw new RuntimeException($"{name.lit} is not callable");
+      Callable func = (Callable)f;
       return func.Call(i, args);
     }
   }

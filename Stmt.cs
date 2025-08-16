@@ -13,6 +13,8 @@ public abstract class Statement
       expr.Evaluate(i);
     }
   }
+
+
   public class Print(Expr expr) : Statement
   {
     public Expr expr = expr;
@@ -52,6 +54,7 @@ public abstract class Statement
       i.environment.Set(token.lit, null);
     }
   }
+
   public class FuncDecl(Token ident, List<Expr.Ident> args, List<Statement> statements) : Statement
   {
     public Token name = ident;
@@ -62,6 +65,16 @@ public abstract class Statement
       Environment closure = i.environment;
       Function function = new(statements, args, closure);
       i.environment.Set(name.lit, function);
+    }
+  }
+
+  public class ClassDecl(Token ident, List<Statement> statements) : Statement
+  {
+    public Token ident = ident;
+    public List<Statement> statements = statements;
+    public override void Execute(Interpreter i)
+    {
+      i.environment.Set(ident.lit, new Class(ident, statements));
     }
   }
   public class Loop(Statement? init, Expr? cond, Expr? action, Statement body) : Statement

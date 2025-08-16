@@ -1,7 +1,5 @@
-var test = 3;
 class MyFirstClass {
-  test = 2;
-  a = 3;
+  test = 1;
   MyFirstClass(a){
     print a;
   }

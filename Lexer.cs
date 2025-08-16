@@ -36,7 +36,9 @@ public enum TokenType
   For,
   Func,
   Coma,
-  Return
+  Return,
+  Class,
+  New
 }
 
 public struct Token
@@ -60,7 +62,9 @@ class Lexer
     {"while", TokenType.While },
     {"for", TokenType.For },
     {"func", TokenType.Func},
-    {"return", TokenType.Return}
+    {"return", TokenType.Return},
+    {"class", TokenType.Class},
+    {"new", TokenType.New}
   };
   string source;
   public int pos;

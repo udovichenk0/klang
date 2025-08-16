@@ -16,6 +16,7 @@ class Resolver(Interpreter i)
     if (statement is Statement.Block block) ResolveBlock(block);
     if (statement is Statement.VarDecl vardecl) ResolveVarDecl(vardecl);
     if (statement is Statement.FuncDecl funcDecl) ResolveFuncDecl(funcDecl);
+    if (statement is Statement.ClassDecl classDecl) ResolveClassDecl(classDecl);
     if (statement is Statement.Print print) ResolvePrint(print);
     if (statement is Statement.Expression expr) ResolveExprStatement(expr);
     if (statement is Statement.Loop loop) ResolveLoop(loop);
@@ -54,6 +55,20 @@ class Resolver(Interpreter i)
     Resolve(funcDecl.statements);
     EndScope();
     interpreter.isInFunction = isInnerFunction;
+  }
+
+  void ResolveClassDecl(Statement.ClassDecl classDecl)
+  {
+    if (scopes.Count > 0) throw new ParseException("Class declaration is allowed only in a global scope");
+    Define(classDecl.ident);
+    BeginScope();
+
+    foreach (Statement stmt in classDecl.statements)
+    {
+      ResolveStatement(stmt);
+    }
+
+    EndScope();
   }
 
   void ResolvePrint(Statement.Print print)
@@ -124,14 +139,14 @@ class Resolver(Interpreter i)
 
 
 
-  void ResolveLocal(Token name)
+  void ResolveLocal(Token ident)
   {
-    for (int i = scopes.Count - 1; i >= 0; i--)
+    for (int i = scopes.Count; i > 0; i--)
     {
-      var scope = scopes[i];
-      if (scope.ContainsKey(name))
+      var scope = scopes[i - 1];
+      if (scope.ContainsKey(ident))
       {
-        interpreter.Resolve(name, i);
+        interpreter.Resolve(ident, scopes.Count - i);
       }
     }
   }

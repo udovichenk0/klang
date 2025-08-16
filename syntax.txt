@@ -1,0 +1,40 @@
+
+declaration -> declStmt | statement
+
+statement -> exprStmt | block | ifStmt | forStmt | whileStmt
+
+
+ifStmt -> "if" "(" expression ")" statement ("else" statement)?
+
+forStmt -> "for" "(" (varDecl | exprStmt | ";") expression? ";" expression ")" statement
+whileStmt -> "while" "(" expression ")" statement
+
+varDecl -> "var" IDENT ("=" expression)? ";"
+
+declStmt -> varDecl | funcDecl | classDecl
+
+classDecl -> "class" IDENT "{" classBody? "}"
+classBody -> (varDecl | function)*
+
+funcDecl -> "func" function
+function -> IDENT "(" params ")" block
+
+params -> IDENT ("," IDENT)*
+
+block -> "{" (declaration*)? "}"
+
+print exprStmt
+
+exprStmt -> expression ";"
+
+
+expression -> assignment
+assignment -> (INDENT "=" or) | or
+or -> and ( "or" and )*
+and -> equality ( "and" equality )*
+equality -> term  ( ( "==" | "<=" | "<" | ">=" | ">") term )*
+term -> factor ( ("+" | "-") factor )*
+factor -> unary ( ("*" | "/") unary )*
+unary -> call | ("-" | "!") unary | unary ("++" | "--")
+call -> primary ( "(" expression? ("," expression)* ")" )*
+primary -> NUMBER | INDENT | STRING | BOOLEAN | NIL | ( expression )

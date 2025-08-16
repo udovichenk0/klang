@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Data.Common;
+
 class Parser
 {
   Lexer l;
@@ -34,6 +37,7 @@ class Parser
     if (Match([TokenType.For])) return ForStatement();
     if (Match([TokenType.Print])) return PrintStatement();
     if (Match([TokenType.Var])) return VarDeclStatement();
+    if (Match([TokenType.Class])) return ClassStatement();
     return ExpressionStatement();
   }
   Statement.Condition ConditionStatement()
@@ -178,6 +182,68 @@ class Parser
     Expect(TokenType.Semicolon);
     return new Statement.Return(value);
   }
+
+  Statement.ClassDecl ClassStatement()
+  {
+    l.getToken();
+    Token ident = l.token;
+    Console.WriteLine("parse class");
+    Console.WriteLine(ident.lit);
+    if (!Match([TokenType.Ident])) throw new ParseException("Expected identifier");
+    l.getToken();
+    if (!Match([TokenType.CurlyOpen])) throw new ParseException("Expected '{'");
+    l.getToken();
+    List<Statement> statements = [];
+    while (!Match([TokenType.CurlyClose]))
+    {
+      Statement stm = classBody();
+      statements.Add(stm);
+    }
+    Expect(TokenType.CurlyClose);
+    return new Statement.ClassDecl(ident, statements);
+  }
+
+  Statement classBody()
+  {
+
+    Token ident = l.token;
+    Expect(TokenType.Ident);
+    if (Match([TokenType.Equal]))
+    {
+      l.getToken();
+      return new Statement.VarDecl(ident, ExpressionStatement().expr);
+    }
+    if (Match([TokenType.ParenOpen]))
+    {
+      return Function(ident);
+    }
+
+    throw new ParseException("Unknown statement in class body");
+  }
+
+  Statement.FuncDecl Function(Token ident)
+  {
+    Expect(TokenType.ParenOpen);
+    List<Expr.Ident> args = [];
+    if (!Match([TokenType.ParenClose]))
+    {
+      Expr expr = Expression();
+      if (expr is Expr.Ident firstParam)
+        args.Add(firstParam);
+      else throw new ParseException("params must be valid identificators");
+      while (Match([TokenType.Coma]))
+      {
+        l.getToken();
+        expr = Expression();
+        if (expr is Expr.Ident param)
+          args.Add(param);
+      }
+    }
+    Expect(TokenType.ParenClose);
+    Statement.Block block = BlockStatement();
+    return new Statement.FuncDecl(ident, args, block.statements);
+  }
+
   Expr Expression()
   {
     return Assignment();
@@ -188,10 +254,9 @@ class Parser
     if (Match([TokenType.Equal]))
     {
       l.getToken(); // skip operator
-      if (ident is Expr.Ident)
+      if (ident is Expr.Ident identExpr)
       {
-        Expr expr = Or();
-        return new Expr.Assign((Expr.Ident)ident, expr);
+        return new Expr.Assign(identExpr, Or());
       }
       throw new ParseException("invalid assignment target");
     }
@@ -223,7 +288,7 @@ class Parser
   }
   Expr Equality()
   {
-    Expr leftExpr = Temp();
+    Expr leftExpr = Term();
     if (Match([
       TokenType.Less,
       TokenType.More,
@@ -234,12 +299,12 @@ class Parser
     {
       Token op = l.token;
       l.getToken(); // skip operator
-      Expr rightExpr = Temp();
+      Expr rightExpr = Term();
       return new Expr.Binary(leftExpr, op, rightExpr);
     }
     return leftExpr;
   }
-  Expr Temp()
+  Expr Term()
   {
     Expr expr = Factor();
     while (Match([
@@ -305,8 +370,8 @@ class Parser
         }
       }
       Expect(TokenType.ParenClose);
-      Expr.Ident var = (Expr.Ident)primary;
-      return new Expr.Call(var.name, args);
+      Expr.Ident ident = (Expr.Ident)primary;
+      return new Expr.Call(ident.name, args);
     }
     return primary;
   }

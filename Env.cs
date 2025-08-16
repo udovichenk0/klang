@@ -6,14 +6,6 @@ public class Environment(Environment? environment)
 
   public object Get(Token key)
   {
-    // bool has = locals.TryGetValue(key, out int count);
-    // if (!has) throw new RuntimeException($"undefined variable {key.lit}");
-    Environment env = this;
-    // for (int i = 0; i < count; i++)
-    // {
-    //   if (enclosing is not null)
-    //     env = enclosing;
-    // }
     bool isExist = vars.TryGetValue(key.lit, out object? value);
     if (isExist)
     {
@@ -26,25 +18,24 @@ public class Environment(Environment? environment)
     }
     throw new RuntimeException($"undefined variable {key.lit}");
   }
-  public object GetAt(Token name, int distance)
+  public object GetAt(Token ident, int distance)
   {
     Environment env = this;
     for (int i = 0; i < distance; i++)
     {
-      // if (env.enclosing is not null)
-      // env = env.enclosing;
+      if (env.enclosing is not null)
+        env = env.enclosing;
     }
-
-    return env.Get(name);
+    return env.Get(ident);
   }
 
-  public object GetFromGlobal(Token name)
+  public object GetFromGlobal(Token ident)
   {
     Environment env = this;
     while (env.enclosing is not null)
       env = env.enclosing;
 
-    return env.Get(name);
+    return env.Get(ident);
   }
 
   public void Set(string key, object? value)
