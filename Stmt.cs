@@ -74,8 +74,11 @@ public abstract class Statement
     public List<Statement> statements = statements;
     public override void Execute(Interpreter i)
     {
-      i.environment.Set(ident.lit, new Class(ident, statements));
+      i.environment.Set(ident.lit, null);
+      Class klass = new(ident, statements);
+      i.environment.Assign(ident.lit, klass);
     }
+
   }
   public class Loop(Statement? init, Expr? cond, Expr? action, Statement body) : Statement
   {

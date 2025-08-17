@@ -1,10 +1,19 @@
-var test = 3;
-class MyFirstClass {
-  test = 2;
-  a = 3;
-  MyFirstClass(a){
-    print a;
+class Test {
+  field = 1;
+  Test(a){
+    print "constructor with params" + " " + a;
+  }
+  firstMethod(){
+    print Test;
   }
 }
 
-MyFirstClass(1);
+var instance = Test(123);
+
+func test(){
+  return "from test: " + this.field;
+}
+
+instance.name = test;
+instance.firstMethod();
+print instance.name();

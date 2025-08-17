@@ -38,7 +38,9 @@ public enum TokenType
   Coma,
   Return,
   Class,
-  New
+  New,
+  Dot,
+  This
 }
 
 public struct Token
@@ -64,7 +66,8 @@ class Lexer
     {"func", TokenType.Func},
     {"return", TokenType.Return},
     {"class", TokenType.Class},
-    {"new", TokenType.New}
+    {"new", TokenType.New},
+    {"this", TokenType.This},
   };
   string source;
   public int pos;
@@ -138,6 +141,9 @@ class Lexer
         return;
       case ',':
         setToken(TokenType.Coma);
+        return;
+      case '.':
+        setToken(TokenType.Dot);
         return;
       case '=':
         if (Peek() == '=')

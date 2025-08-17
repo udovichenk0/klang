@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("klang")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7c389d5f06cf4702438f5b1c47fcf9d29721bab9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f9fcc416a1845a6c33cfbe7a268a74518caa072f")]
 [assembly: System.Reflection.AssemblyProductAttribute("klang")]
 [assembly: System.Reflection.AssemblyTitleAttribute("klang")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

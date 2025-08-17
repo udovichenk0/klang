@@ -1,6 +1,3 @@
-using System.ComponentModel;
-using System.Data.Common;
-
 class Parser
 {
   Lexer l;
@@ -187,8 +184,6 @@ class Parser
   {
     l.getToken();
     Token ident = l.token;
-    Console.WriteLine("parse class");
-    Console.WriteLine(ident.lit);
     if (!Match([TokenType.Ident])) throw new ParseException("Expected identifier");
     l.getToken();
     if (!Match([TokenType.CurlyOpen])) throw new ParseException("Expected '{'");
@@ -257,6 +252,10 @@ class Parser
       if (ident is Expr.Ident identExpr)
       {
         return new Expr.Assign(identExpr, Or());
+      }
+      else if (ident is Expr.Getter getterExpr)
+      {
+        return new Expr.Setter(getterExpr.expr, getterExpr.ident.name, Or());
       }
       throw new ParseException("invalid assignment target");
     }
@@ -356,22 +355,33 @@ class Parser
   Expr Call()
   {
     Expr primary = Primary();
-    if (Match([TokenType.ParenOpen]))
+    while (true)
     {
-      l.getToken();
-      List<Expr> args = [];
-      if (!Match([TokenType.ParenClose]))
+      if (Match([TokenType.ParenOpen]))
       {
-        args.Add(Expression());
-        while (Match([TokenType.Coma]))
+        l.getToken();
+        List<Expr> args = [];
+        if (!Match([TokenType.ParenClose]))
         {
-          l.getToken();
           args.Add(Expression());
+          while (Match([TokenType.Coma]))
+          {
+            l.getToken();
+            args.Add(Expression());
+          }
         }
+        Expect(TokenType.ParenClose);
+        primary = new Expr.Call(primary, args);
+        continue;
       }
-      Expect(TokenType.ParenClose);
-      Expr.Ident ident = (Expr.Ident)primary;
-      return new Expr.Call(ident.name, args);
+      else if (Match([TokenType.Dot]))
+      {
+        l.getToken();
+        Expr ident = Primary();
+        primary = new Expr.Getter(primary, (Expr.Ident)ident);
+        continue;
+      }
+      break;
     }
     return primary;
   }
@@ -387,6 +397,8 @@ class Parser
       case TokenType.False:
       case TokenType.Nil:
         return new Expr.Primary(token);
+      case TokenType.This:
+        return new Expr.This(token);
       case TokenType.Ident:
         return new Expr.Ident(token);
       case TokenType.ParenOpen:

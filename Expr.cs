@@ -181,16 +181,40 @@ public abstract class Expr
     if (!has) return i.environment.GetFromGlobal(ident);
     return i.environment.GetAt(ident, distance);
   }
-  public class Call(Token name, List<Expr> args) : Expr
+  public class Call(Expr expr, List<Expr> args) : Expr
   {
-    public Token name = name;
+    public Expr callee = expr;
     public List<Expr> args = args;
     public override object Evaluate(Interpreter i)
     {
-      object f = i.environment.Get(name);
-      if (f is not Callable) throw new RuntimeException($"{name.lit} is not callable");
-      Callable func = (Callable)f;
-      return func.Call(i, args);
+      object f = callee.Evaluate(i);
+      if (f is not Callable callable) throw new RuntimeException($"{f} is not an instance");
+      return callable.Call(i, args);
+    }
+  }
+  public class Getter(Expr expr, Ident ident) : Expr
+  {
+    public Expr expr = expr;
+    public Ident ident = ident;
+
+    public override object Evaluate(Interpreter i)
+    {
+      object klassInstance = expr.Evaluate(i);
+      if (klassInstance is not Instance instance)
+        throw new RuntimeException($"can't access property of {klassInstance}");
+      return instance.Get(ident.name.lit);
+    }
+  }
+  public class Setter(Expr expr, Token ident, Expr value) : Expr
+  {
+    public override object Evaluate(Interpreter i)
+    {
+      object klassInstance = expr.Evaluate(i);
+      if (klassInstance is not Instance instance)
+        throw new RuntimeException($"can't access property of {klassInstance}");
+      object v = value.Evaluate(i);
+      instance.Set(ident.lit, v);
+      return v;
     }
   }
   public class Assign(Ident ident, Expr expr) : Expr
@@ -202,6 +226,14 @@ public abstract class Expr
       object value = expr.Evaluate(i);
       i.environment.Assign(ident.name.lit, value);
       return value;
+    }
+  }
+  public class This(Token ident) : Expr
+  {
+    public Token ident = ident;
+    public override object Evaluate(Interpreter i)
+    {
+      return i.environment.Get(ident);
     }
   }
   public bool IsTruthy(object value)

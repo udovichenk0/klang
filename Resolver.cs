@@ -2,7 +2,7 @@ using klang;
 
 class Resolver(Interpreter i)
 {
-  List<Dictionary<Token, bool>> scopes = [];
+  List<Dictionary<string, bool>> scopes = [];
   Interpreter interpreter = i;
   public void Resolve(List<Statement> statements)
   {
@@ -32,23 +32,23 @@ class Resolver(Interpreter i)
 
   void ResolveVarDecl(Statement.VarDecl vardecl)
   {
-    Declare(vardecl.token);
+    Declare(vardecl.token.lit);
     if (vardecl.expr is not null)
       ResolveExpr(vardecl.expr);
-    Define(vardecl.token);
+    Define(vardecl.token.lit);
   }
 
   void ResolveFuncDecl(Statement.FuncDecl funcDecl)
   {
     bool isInnerFunction = interpreter.isInFunction;
-    Define(funcDecl.name);
+    Define(funcDecl.name.lit);
 
     BeginScope();
 
     foreach (Expr.Ident arg in funcDecl.args)
     {
-      Declare(arg.name);
-      Define(arg.name);
+      Declare(arg.name.lit);
+      Define(arg.name.lit);
     }
 
     interpreter.isInFunction = true;
@@ -60,14 +60,12 @@ class Resolver(Interpreter i)
   void ResolveClassDecl(Statement.ClassDecl classDecl)
   {
     if (scopes.Count > 0) throw new ParseException("Class declaration is allowed only in a global scope");
-    Define(classDecl.ident);
     BeginScope();
-
+    Peek()?.Add("this", true);
     foreach (Statement stmt in classDecl.statements)
     {
       ResolveStatement(stmt);
     }
-
     EndScope();
   }
 
@@ -114,10 +112,11 @@ class Resolver(Interpreter i)
   {
     if (expr is Expr.Ident ident)
       ResolveLocal(ident.name);
+    else if (expr is Expr.This t) ResolveLocal(t.ident);
 
     else if (expr is Expr.Call call)
     {
-      ResolveLocal(call.name);
+      ResolveExpr(call.callee);
       foreach (Expr arg in call.args) ResolveExpr(arg);
     }
 
@@ -137,14 +136,12 @@ class Resolver(Interpreter i)
     }
   }
 
-
-
   void ResolveLocal(Token ident)
   {
     for (int i = scopes.Count; i > 0; i--)
     {
       var scope = scopes[i - 1];
-      if (scope.ContainsKey(ident))
+      if (scope.ContainsKey(ident.lit))
       {
         interpreter.Resolve(ident, scopes.Count - i);
       }
@@ -152,27 +149,27 @@ class Resolver(Interpreter i)
   }
   void BeginScope()
   {
-    Dictionary<Token, bool> scope = [];
+    Dictionary<string, bool> scope = [];
     scopes.Add(scope);
   }
   void EndScope()
   {
     scopes.RemoveAt(scopes.Count - 1);
   }
-  Dictionary<Token, bool>? Peek()
+  Dictionary<string, bool>? Peek()
   {
     return scopes.Count > 0 ? scopes.Last() : null;
   }
-  void Declare(Token token)
+  void Declare(string lit)
   {
-    Peek()?.Add(token, false);
+    Peek()?.Add(lit, false);
   }
-  void Define(Token token)
+  void Define(string lit)
   {
-    Dictionary<Token, bool>? scope = Peek();
+    Dictionary<string, bool>? scope = Peek();
     if (scope is not null)
     {
-      scope[token] = true;
+      scope[lit] = true;
     }
   }
 }
