@@ -13,7 +13,7 @@ varDecl -> "var" IDENT ("=" expression)? ";"
 
 declStmt -> varDecl | funcDecl | classDecl
 
-classDecl -> "class" IDENT "{" classBody? "}"
+classDecl -> "class" IDENT (":" IDENT)? "{" classBody? "}"
 classBody -> (varDecl | function)*
 
 funcDecl -> "func" function

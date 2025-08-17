@@ -68,15 +68,46 @@ public abstract class Statement
     }
   }
 
-  public class ClassDecl(Token ident, List<Statement> statements) : Statement
+  public class ClassDecl(Token ident, List<Statement> statements, Expr.Ident? parent) : Statement
   {
     public Token ident = ident;
     public List<Statement> statements = statements;
+    public Expr.Ident? superClass = parent;
     public override void Execute(Interpreter i)
     {
       i.environment.Set(ident.lit, null);
-      Class klass = new(ident, statements);
-      i.environment.Assign(ident.lit, klass);
+      Environment savedEnv = i.environment;
+      Class? klass = null;
+      if (superClass is not null)
+      {
+        object value = superClass.Evaluate(i);
+        if (value is not Class superKlass)
+          throw new ParseException("Superclass must be a class");
+        klass = superKlass;
+      }
+
+      if (superClass is not null)
+      {
+        i.environment = new Environment(savedEnv);
+        i.environment.Set("super", klass);
+      }
+
+      Dictionary<string, Function> methods = [];
+
+
+      foreach (Statement stm in statements)
+      {
+        if (stm is FuncDecl funcDecl)
+        {
+          Function fn = new(funcDecl.statements, funcDecl.args, i.environment);
+          methods.Add(funcDecl.name.lit, fn);
+        }
+      }
+
+      if (superClass is not null)
+        i.environment = savedEnv;
+
+      i.environment.Assign(ident.lit, new Class(ident, statements, methods, klass));
     }
 
   }
@@ -109,6 +140,7 @@ public abstract class Statement
           action?.Evaluate(i);
         }
       }
+
       i.environment = savedEnv;
     }
   }

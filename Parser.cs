@@ -184,10 +184,23 @@ class Parser
   {
     l.getToken();
     Token ident = l.token;
-    if (!Match([TokenType.Ident])) throw new ParseException("Expected identifier");
+    if (!Match([TokenType.Ident])) throw new ParseException($"Expected identifier got {l.token.lit}");
     l.getToken();
-    if (!Match([TokenType.CurlyOpen])) throw new ParseException("Expected '{'");
+
+    Expr.Ident? super = null;
+
+    if (Match([TokenType.Colon]))
+    {
+      l.getToken();
+      Expr primary = Primary();
+      if (primary is Expr.Ident parent)
+        super = parent;
+
+    }
+    if (!Match([TokenType.CurlyOpen])) throw new ParseException($"Expected {'{'}, got {l.token.lit}");
+
     l.getToken();
+
     List<Statement> statements = [];
     while (!Match([TokenType.CurlyClose]))
     {
@@ -195,7 +208,7 @@ class Parser
       statements.Add(stm);
     }
     Expect(TokenType.CurlyClose);
-    return new Statement.ClassDecl(ident, statements);
+    return new Statement.ClassDecl(ident, statements, super);
   }
 
   Statement classBody()
@@ -399,6 +412,11 @@ class Parser
         return new Expr.Primary(token);
       case TokenType.This:
         return new Expr.This(token);
+      case TokenType.Super:
+        Expect(TokenType.Dot);
+        Token method = l.token;
+        Expect(TokenType.Ident);
+        return new Expr.Super(token, method);
       case TokenType.Ident:
         return new Expr.Ident(token);
       case TokenType.ParenOpen:

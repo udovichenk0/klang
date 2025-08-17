@@ -1,19 +1,20 @@
-class Test {
-  field = 1;
-  Test(a){
-    print "constructor with params" + " " + a;
+class Klass {
+  method(){
+    print "method Klass";
   }
-  firstMethod(){
-    print Test;
+}
+class Test : Klass {
+  method(){
+    print "method Test";
+  }
+
+  test(){
+    super.method();
   }
 }
 
-var instance = Test(123);
+class C : Test {
 
-func test(){
-  return "from test: " + this.field;
 }
 
-instance.name = test;
-instance.firstMethod();
-print instance.name();
+C().test();

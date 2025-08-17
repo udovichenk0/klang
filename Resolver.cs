@@ -59,14 +59,31 @@ class Resolver(Interpreter i)
 
   void ResolveClassDecl(Statement.ClassDecl classDecl)
   {
+    ClassType savedClassType = interpreter.ClassType;
+    interpreter.ClassType = ClassType.Class;
     if (scopes.Count > 0) throw new ParseException("Class declaration is allowed only in a global scope");
+    if (classDecl.superClass is not null)
+    {
+
+      interpreter.ClassType = ClassType.SubClass;
+      BeginScope();
+      Peek()?.Add("super", true);
+      if (classDecl.superClass.name.lit == classDecl.ident.lit)
+        throw new ParseException("A class can't inherit from itself.");
+      ResolveExpr(classDecl.superClass);
+    }
+
     BeginScope();
+
     Peek()?.Add("this", true);
     foreach (Statement stmt in classDecl.statements)
     {
       ResolveStatement(stmt);
     }
+
     EndScope();
+    if (classDecl.superClass is not null) EndScope();
+    interpreter.ClassType = savedClassType;
   }
 
   void ResolvePrint(Statement.Print print)
@@ -112,7 +129,26 @@ class Resolver(Interpreter i)
   {
     if (expr is Expr.Ident ident)
       ResolveLocal(ident.name);
-    else if (expr is Expr.This t) ResolveLocal(t.ident);
+
+    else if (expr is Expr.Getter getter)
+    {
+      ResolveExpr(getter.expr);
+    }
+    else if (expr is Expr.This thisExpr)
+    {
+      if (interpreter.ClassType == ClassType.None)
+        throw new ParseException("Can't use 'this' outside of a class");
+      ResolveLocal(thisExpr.ident);
+    }
+    else if (expr is Expr.Super super)
+    {
+      if (interpreter.ClassType == ClassType.None)
+        throw new ParseException("Can't use 'super' outside of a class");
+      if (interpreter.ClassType == ClassType.Class)
+        throw new ParseException("Can't use 'super' inside a class without a superclass");
+      ResolveLocal(super.ident);
+    }
+    else if (expr is Expr.Super s) ResolveLocal(s.ident);
 
     else if (expr is Expr.Call call)
     {

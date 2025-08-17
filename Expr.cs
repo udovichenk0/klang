@@ -233,7 +233,26 @@ public abstract class Expr
     public Token ident = ident;
     public override object Evaluate(Interpreter i)
     {
-      return i.environment.Get(ident);
+      return LookupVariable(ident, i);
+    }
+  }
+
+  public class Super(Token ident, Token method) : Expr
+  {
+    public Token ident = ident;
+    public override object Evaluate(Interpreter i)
+    {
+      object Klass = i.environment.Get(ident);
+      if (Klass is not Class klass)
+      {
+        throw new RuntimeException($"Super is {Klass}");
+      }
+      object? fn = klass.FindMethod(method.lit);
+      if (fn is null)
+      {
+        throw new RuntimeException($"{method.lit} is not a method in {klass.ident} class");
+      }
+      return fn;
     }
   }
   public bool IsTruthy(object value)

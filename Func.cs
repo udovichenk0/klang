@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using klang;
 abstract class Callable
 {
@@ -50,65 +51,79 @@ class Function(
   }
 }
 
-class Class(Token ident, List<Statement> statements) : Callable
+class Class(
+  Token ident,
+  List<Statement> statements,
+  Dictionary<string, Function> methods,
+  Class? superClass
+ ) : Callable
 {
+  List<Statement> statements = statements;
+  public Token ident = ident;
+  Dictionary<string, Function> methods = methods;
+  Class? superClass = superClass;
+
   public override object Call(Interpreter interpreter, List<Expr> args)
   {
-    Environment savedEnv = interpreter.environment;
-    interpreter.environment = new(savedEnv);
-    Dictionary<string, object> properties = [];
-    Function? init = null;
+    Dictionary<string, object> fields = [];
     foreach (Statement stm in statements)
     {
-      if (stm is Statement.FuncDecl funcDecl)
-      {
-        Function fn = new(funcDecl.statements, funcDecl.args, interpreter.environment);
-        if (funcDecl.name.lit == ident.lit) init = fn;
-        else
-          properties.Add(funcDecl.name.lit, fn);
-        continue;
-      }
-      else if (stm is Statement.VarDecl varDecl)
-      {
-        properties.Add(varDecl.token.lit, varDecl.expr.Evaluate(interpreter));
-        continue;
-      }
-
-      throw new RuntimeException($"Unknown statement {stm}");
+      if (stm is Statement.VarDecl varDecl)
+        fields.Add(varDecl.token.lit, varDecl.expr.Evaluate(interpreter));
     }
 
-    Instance instance = new(this, properties, interpreter.environment);
+    Instance instance = new(this, fields);
+
+    Function? init = FindMethod(ident.lit);
     if (init is not null)
     {
       if (args.Count != init.arity)
       {
         Console.WriteLine($"Expected {init.arity} arguments, but got {args.Count}");
       }
+
       init.Bind(instance);
       init.Call(interpreter, args);
     }
-    interpreter.environment = savedEnv;
+
     return instance;
+  }
+  public Function? FindMethod(string name)
+  {
+    methods.TryGetValue(name, out Function? fn);
+    if (fn is not null) return fn;
+
+    if (superClass is not null)
+      return superClass.FindMethod(name);
+
+    return null;
   }
 }
 
-class Instance(Class klass, Dictionary<string, object> properties, Environment env)
+class Instance(Class klass, Dictionary<string, object> fields)
 {
   Class klass = klass;
-  Dictionary<string, object> properties = properties;
+  Dictionary<string, object> fields = fields;
+
   public object Get(string ident)
   {
-    bool has = properties.TryGetValue(ident, out object value);
-    if (!has) throw new RuntimeException($"no {ident} property in {klass}");
-    if (value is Function fn)
-      return fn.Bind(this);
-    return value;
+    bool has = fields.TryGetValue(ident, out object? value);
+    if (has && value is Function f)
+    {
+      return f.Bind(this);
+    }
+    if (has && value is not null) return value;
+
+    Function? fn = klass.FindMethod(ident);
+    if (fn is null) throw new RuntimeException($"Undefined property {ident} in {klass}");
+
+    return fn.Bind(this);
   }
 
   public void Set(string ident, object value)
   {
-    if (properties.ContainsKey(ident))
+    if (fields.ContainsKey(ident))
       throw new RuntimeException($"property with key '{ident}' already exists");
-    properties.Add(ident, value);
+    fields.Add(ident, value);
   }
 }

@@ -17,6 +17,7 @@ public enum TokenType
   True,
   False,
   Semicolon,
+  Colon,
   Print,
   Var,
   Equal,
@@ -40,7 +41,8 @@ public enum TokenType
   Class,
   New,
   Dot,
-  This
+  This,
+  Super
 }
 
 public struct Token
@@ -68,6 +70,7 @@ class Lexer
     {"class", TokenType.Class},
     {"new", TokenType.New},
     {"this", TokenType.This},
+    {"super", TokenType.Super},
   };
   string source;
   public int pos;
@@ -135,6 +138,9 @@ class Lexer
         return;
       case ';':
         setToken(TokenType.Semicolon);
+        return;
+      case ':':
+        setToken(TokenType.Colon);
         return;
       case '!':
         setToken(TokenType.Not);

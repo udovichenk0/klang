@@ -1,5 +1,6 @@
 ﻿namespace klang;
 
+
 public class Program
 {
   static void Main()
@@ -18,7 +19,7 @@ public class Program
         return;
       }
 
-      Parser p = new Parser(l);
+      Parser p = new(l);
       List<Statement> statements = p.Parse();
 
       Interpreter i = new(statements);
@@ -34,11 +35,20 @@ public class Program
   }
 }
 
+public enum ClassType
+{
+  None,
+  Class,
+  SubClass,
+}
+
 public class Interpreter(List<Statement> stmts)
 {
+
   public Environment environment = new(null);
   public Dictionary<Token, int> locals = [];
   public bool isInFunction = false;
+  public ClassType ClassType = ClassType.None;
 
   public void Interpret()
   {
